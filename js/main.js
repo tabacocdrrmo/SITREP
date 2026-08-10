@@ -1,5 +1,5 @@
 const EMAIL_TO = "cdrrmotabaco2014@gmail.com, gelmolatojunior@gmail.com";
-const SHEETS_WEB_APP_URL = "https://script.google.com/macros/s/AKfycbz0Ok5KPk-VpkvZtQta3tyjZRP7Sl13yhn3AJpEUezLoPemSt2jPqNqld7z7YMDrR2-/exec";
+const SHEETS_WEB_APP_URL = "https://script.google.com/macros/s/AKfycbwcEUHuhBh00drO_P-IcBvZIdEcA0lFEwdrp5TfI0ajPl2KYR24wlyWyDxAVEfDRAYo/exec";
 
 function resourceOptions() {
     return `

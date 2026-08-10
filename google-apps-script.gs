@@ -9,14 +9,16 @@ function doPost(e) {
         "Nature of Incident", "Assigned Team", "Shift-In-Charge (SIC)", "Operator in Charge",
         "Dispatched Resources", "Incident Caller / Informant", "Contact No.",
         "Dispatched Time", "Arrival at Scene", "Take Off from Scene", "Arrival at Hospital",
-        "Barangay", "Municipality", "Patients", "Under Influence of Alcohol?", "Status",
+        "Barangay", "Municipality", "Patient", "Age", "Address", "Injuries",
+        "Under Influence of Alcohol?", "Status",
         "First Aid Provided", "Remarks", "Drivers", "Responders"
       ]);
     }
 
-    const patients = (data.patients || [])
-      .map(p => `${p.patient} (${p.age}) - ${p.address} - ${p.injury}`)
-      .join("; ");
+    const patients = (data.patients || []).map(p => p.patient).join("; ");
+    const ages = (data.patients || []).map(p => p.age).join("; ");
+    const addresses = (data.patients || []).map(p => p.address).join("; ");
+    const injuries = (data.patients || []).map(p => p.injury).join("; ");
 
     sheet.appendRow([
       new Date(),
@@ -25,7 +27,7 @@ function doPost(e) {
       (data.resources || []).join(", "),
       data.caller, data.contact,
       data.dispatchedTime, data.arrivalTime, data.takeoffTime, data.hospitalTime,
-      data.barangay, data.municipality, patients,
+      data.barangay, data.municipality, patients, ages, addresses, injuries,
       data.liquor, data.status,
       data.firstAid, data.remarks,
       (data.drivers || []).join(", "),
