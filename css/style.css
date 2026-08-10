@@ -1,0 +1,1283 @@
+    * { box-sizing: border-box; }
+    body {
+        margin: 0;
+        padding: 10px 24px 30px;
+        font-family: Arial, Helvetica, sans-serif;
+        font-size: 13px;
+        color: #111;
+        background: #fff;
+    }
+    .form-container {
+        width: 1050px;
+        max-width: 100%;
+        margin: 0 auto;
+    }
+    h1, h2 {
+        text-align: center;
+        margin: 0;
+        font-size: 14px;
+        font-weight: bold;
+    }
+    h2 { font-size: 13px; margin-top: 5px; font-weight: normal; }
+
+    .top-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 28px;
+        margin-top: 16px;
+    }
+    .left, .right { min-width: 0; }
+    .row {
+        display: flex;
+        align-items: center;
+        margin-bottom: 4px;
+        min-height: 24px;
+    }
+    .label {
+        text-align: right;
+        margin-right: 4px;
+        white-space: nowrap;
+    }
+    .left .label { width: 168px; }
+    .right .label { width: 180px; }
+
+    input[type="text"], input[type="date"], input[type="time"], select {
+        height: 22px;
+        border: 1px solid #777;
+        padding: 2px 5px;
+        font: inherit;
+        background: #fff;
+    }
+    select { padding-right: 18px; }
+    .full { flex: 1; min-width: 0; }
+    .resource-input { width: 290px; }
+    .place-input { width: 130px; }
+    .caller-input { flex: 1; }
+    .contact-input { flex: 1; }
+    .date-input { width: 160px; }
+    .time-input { width: 130px; margin-left: auto; }
+
+    .add-btn, .remove-btn {
+        border: 0;
+        background: transparent;
+        cursor: pointer;
+        font-size: 17px;
+        line-height: 18px;
+        padding: 0 4px;
+    }
+    .add-btn { color: #004a9f; }
+    .add-btn:hover { color: #d00; }
+    .remove-btn { color: #d00; }
+    .remove-btn:hover { color: #004a9f; }
+
+    .spacer { height: 108px; }
+
+    .section-title {
+        margin: 4px 0 12px;
+    }
+    .place-row {
+        display: flex;
+        align-items: center;
+        margin-bottom: 24px;
+    }
+    .place-row .label { width: 168px; }
+    .place-row .place-group {
+        width: 195px;
+        text-align: center;
+        margin-right: 30px;
+    }
+    .place-group input { width: 130px; }
+    .place-group div { margin-top: 3px; }
+
+    .victim-row {
+        display: grid;
+        grid-template-columns: 92px 225px 58px 44px 55px 215px 78px 215px;
+        align-items: center;
+        gap: 4px;
+        margin-bottom: 6px;
+    }
+    .victim-row input { width: 100%; }
+    .victim-row .age { width: 44px; }
+    .victim-row .patient-label { text-align: right; }
+    .victim-row .inj-label { text-align: right; }
+
+    .checkbox-row {
+        display: flex;
+        align-items: center;
+        min-height: 25px;
+        margin-bottom: 0;
+    }
+    .checkbox-row .label {
+        width: 190px;
+    }
+    .checks {
+        display: flex;
+        align-items: center;
+        gap: 18px;
+    }
+    .checks label {
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
+        white-space: nowrap;
+    }
+    input[type="checkbox"] { margin: 0; width: 13px; height: 13px; }
+
+    .remarks-row {
+        display: flex;
+        align-items: flex-start;
+        margin-top: 8px;
+    }
+    .remarks-row .label {
+        width: 168px;
+        text-align: right;
+        margin-right: 4px;
+        padding-top: 6px;
+    }
+    textarea {
+        width: 620px;
+        height: 41px;
+        resize: vertical;
+        border: 1px solid #777;
+        padding: 4px;
+        font: inherit;
+    }
+
+    .team-section { margin-top: 28px; }
+    .team-title {
+        display: inline-block;
+        width: 168px;
+        text-align: right;
+        margin-right: 4px;
+    }
+    .team-columns {
+        display: flex;
+        gap: 58px;
+        margin-left: 168px;
+        margin-top: -3px;
+    }
+    .team-col { width: 290px; }
+    .team-item {
+        display: flex;
+        align-items: center;
+        margin-bottom: 5px;
+    }
+    .team-item select { width: 225px; }
+    .team-caption {
+        text-align: center;
+        margin-top: 2px;
+        font-size: 13px;
+    }
+
+    .actions {
+        display: flex;
+        justify-content: center;
+        gap: 55px;
+        margin-top: 68px;
+    }
+    button.action {
+        width: 170px;
+        height: 46px;
+        border: 1px solid #888;
+        background: #eee;
+        cursor: pointer;
+        font-size: 13px;
+    }
+    button.action:hover { background: #ddd; }
+
+    .required-empty {
+        border: 2px solid #d00000 !important;
+        background: #fff1f1 !important;
+    }
+    .check-required-empty {
+        outline: 2px solid #d00000;
+        outline-offset: 1px;
+        border-radius: 2px;
+    }
+
+    #reportModal {
+        display: none;
+        position: fixed;
+        inset: 0;
+        background: rgba(0,0,0,.55);
+        z-index: 1000;
+        overflow: auto;
+        padding: 25px;
+    }
+    .report-box {
+        background: #fff;
+        width: 1050px;
+        max-width: 100%;
+        margin: auto;
+        padding: 22px;
+        box-shadow: 0 3px 15px rgba(0,0,0,.3);
+    }
+    .report-header {
+        position: relative;
+        display: flex;
+        align-items: center;
+        justify-content: flex-start;
+        gap: 18px;
+        margin-bottom: 12px;
+        padding-bottom: 10px;
+        border-bottom: 2px solid #000;
+    }
+    .doc-logo {
+        width: 72px;
+        height: 72px;
+        flex: 0 0 72px;
+        object-fit: contain;
+    }
+    .doc-header-text {
+        position: absolute;
+        left: 0;
+        right: 0;
+        text-align: center;
+        line-height: 1.35;
+        pointer-events: none;
+    }
+    .gov-line {
+        font-size: 12px;
+    }
+    .agency-name {
+        font-size: 14px;
+        font-weight: 800;
+        letter-spacing: .5px;
+    }
+    .doc-contact {
+        font-size: 12px;
+    }
+    .report-title {
+        text-align: center;
+        margin: 0 0 15px;
+        font-size: 16px;
+    }
+    .report-table {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 12px;
+    }
+    .report-table th, .report-table td {
+        border: 1px solid #777;
+        padding: 5px;
+        vertical-align: top;
+    }
+    .report-table th {
+        background: #eee;
+        width: 22%;
+        text-align: left;
+    }
+    .report-actions {
+        text-align: center;
+        margin-top: 15px;
+    }
+    .report-actions button {
+        padding: 9px 20px;
+        margin: 0 5px;
+        cursor: pointer;
+    }
+
+    @media (max-width: 900px) {
+        body { padding: 10px; }
+        .top-grid { grid-template-columns: 1fr; }
+        .spacer { display: none; }
+        .victim-row {
+            grid-template-columns: 92px 1fr 45px 45px 55px 1fr;
+        }
+        .victim-row .inj-label { grid-column: 1; }
+        .victim-row .injury { grid-column: 2 / -1; }
+        .team-columns { margin-left: 0; }
+        .team-title { width: auto; }
+    }
+
+    /* ---------- Modern / Mobile View ---------- */
+    .mobile-header {
+        display: none;
+    }
+
+    .header-mark img {
+        position: absolute;
+        inset: 0;
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+    }
+
+    @media (max-width: 700px) {
+        body {
+            padding: 0 0 24px;
+            background: #f4f6f8;
+            font-size: 14px;
+        }
+
+        .form-container {
+            width: 100%;
+            max-width: 100%;
+            margin: 0;
+        }
+
+        .desktop-title {
+            display: none;
+        }
+
+        .mobile-header {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 16px 16px 14px;
+            background: linear-gradient(135deg, #123d68, #176b9d);
+            color: #fff;
+            box-shadow: 0 2px 8px rgba(0,0,0,.15);
+        }
+
+        .header-mark {
+            width: 50px;
+            height: 50px;
+            border: 2px solid rgba(255,255,255,.85);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 10px;
+            font-weight: 800;
+            letter-spacing: .5px;
+            flex: 0 0 50px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .office-name {
+            font-size: 13px;
+            font-weight: 800;
+            letter-spacing: .7px;
+        }
+
+        .office-title {
+            font-size: 12px;
+            line-height: 1.25;
+            opacity: .95;
+            margin-top: 2px;
+        }
+
+        .form-title {
+            display: inline-block;
+            margin-top: 7px;
+            padding: 3px 9px;
+            border-radius: 10px;
+            background: rgba(255,255,255,.16);
+            font-size: 10px;
+            font-weight: 700;
+            letter-spacing: 1.5px;
+        }
+
+        form {
+            padding: 12px;
+        }
+
+        .top-grid {
+            display: block;
+            margin-top: 0;
+        }
+
+        .left, .right {
+            width: 100%;
+        }
+
+        .left, .right,
+        .place-row,
+        .team-section,
+        .remarks-row,
+        #victims {
+            background: #fff;
+            border: 1px solid #e0e5e9;
+            border-radius: 12px;
+            padding: 12px;
+            margin-bottom: 12px;
+            box-shadow: 0 1px 4px rgba(0,0,0,.05);
+        }
+
+        .row {
+            display: grid;
+            grid-template-columns: 1fr;
+            align-items: stretch;
+            gap: 5px;
+            margin-bottom: 12px;
+        }
+
+        .left .label,
+        .right .label,
+        .remarks-row .label,
+        .place-row .label,
+        .team-title {
+            width: auto;
+            text-align: left;
+            margin: 0;
+            font-weight: 700;
+            color: #344454;
+        }
+
+        input[type="text"],
+        input[type="date"],
+        input[type="time"],
+        input[type="number"],
+        select,
+        textarea {
+            width: 100% !important;
+            height: 42px;
+            min-height: 42px;
+            border: 1px solid #aeb8c2;
+            border-radius: 7px;
+            padding: 8px 10px;
+            font-size: 15px;
+            background: #fff;
+        }
+
+        textarea {
+            height: 90px;
+            min-height: 90px;
+        }
+
+        .resource-input,
+        .caller-input,
+        .contact-input,
+        .date-input,
+        .time-input {
+            width: 100%;
+        }
+
+        .resource-row {
+            grid-template-columns: 1fr 30px;
+            gap: 5px;
+            align-items: end;
+        }
+
+        .resource-row .label {
+            grid-column: 1 / -1;
+        }
+
+        .resource-row .add-btn,
+        .resource-row .remove-btn {
+            grid-column: 2;
+            grid-row: 2;
+        }
+
+        .right .row {
+            grid-template-columns: 1fr;
+        }
+
+        /* Time controls are deliberately kept close to their labels. */
+        .right .row:has(input[type="time"]) {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 4px;
+            margin-bottom: 10px;
+        }
+
+        .right .row:has(input[type="time"]) .label {
+            margin: 0;
+        }
+
+        .right .row:has(input[type="time"]) .time-input {
+            margin: 0 !important;
+            width: 100% !important;
+        }
+
+        .spacer {
+            display: none;
+        }
+
+        .place-row {
+            display: block;
+            margin: 0 12px 12px;
+        }
+
+        .place-row .place-group {
+            width: 100%;
+            text-align: left;
+            margin: 0 0 12px;
+        }
+
+        .place-group input {
+            width: 100%;
+        }
+
+        .place-group div {
+            margin: 4px 0 0;
+            font-size: 12px;
+            color: #687580;
+        }
+
+        .section-title {
+            margin: 14px 12px 8px;
+            font-weight: 800;
+            font-size: 15px;
+            color: #263746;
+        }
+
+        #victims {
+            margin-left: 12px;
+            margin-right: 12px;
+        }
+
+        .victim-row {
+            display: block;
+            padding: 10px 0;
+            margin: 0;
+            border-bottom: 1px solid #e4e8eb;
+        }
+
+        .victim-row:last-child {
+            border-bottom: 0;
+        }
+
+        .victim-row > span {
+            display: block;
+            text-align: left !important;
+            margin: 0 0 5px;
+            color: #344454;
+            font-weight: 700;
+        }
+
+        .victim-row input {
+            margin-bottom: 9px;
+        }
+
+        .victim-row > div {
+            display: flex !important;
+            gap: 4px;
+            align-items: center;
+        }
+
+        .victim-row > div input {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .add-btn, .remove-btn {
+            width: 30px;
+            height: 30px;
+            flex: 0 0 30px;
+            border: 1px solid #b9c3cc;
+            border-radius: 50%;
+            background: #f5f8fa;
+            font-weight: 700;
+            line-height: 26px;
+            padding: 0;
+            text-align: center;
+        }
+
+        .add-btn { color: #176b9d; }
+
+        .remove-btn { color: #d00; }
+
+        .checkbox-row {
+            display: block;
+            background: #fff;
+            margin: 0 12px 10px;
+            padding: 12px;
+            border: 1px solid #e0e5e9;
+            border-radius: 10px;
+            box-shadow: 0 1px 4px rgba(0,0,0,.04);
+        }
+
+        .checkbox-row .label {
+            display: block;
+            width: auto;
+            text-align: left;
+            margin: 0 0 9px;
+            font-weight: 700;
+            color: #344454;
+        }
+
+        .checks {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0,1fr));
+            gap: 8px;
+        }
+
+        .checks label {
+            min-height: 38px;
+            padding: 7px 9px;
+            border: 1px solid #d5dce2;
+            border-radius: 7px;
+            background: #fafbfc;
+        }
+
+        input[type="checkbox"] {
+            width: 17px;
+            height: 17px;
+        }
+
+        .remarks-row {
+            display: block;
+            margin: 0 12px 12px;
+        }
+
+        .remarks-row .label {
+            padding: 0;
+            margin-bottom: 6px;
+        }
+
+        .team-section {
+            margin: 0 12px 12px;
+        }
+
+        .team-title {
+            display: block;
+            margin-bottom: 9px;
+        }
+
+        .team-columns {
+            display: block;
+            margin: 0;
+        }
+
+        .team-col {
+            width: 100%;
+            padding-bottom: 12px;
+        }
+
+        .team-col + .team-col {
+            border-top: 1px solid #e2e7eb;
+            padding-top: 12px;
+        }
+
+        .team-item {
+            display: flex;
+            gap: 4px;
+            margin-bottom: 6px;
+        }
+
+        .team-item select {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .team-caption {
+            text-align: left;
+            font-size: 12px;
+            color: #687580;
+            font-weight: 700;
+        }
+
+        .actions {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            margin: 16px 12px 0;
+        }
+
+        button.action {
+            width: 100%;
+            height: 48px;
+            border-radius: 8px;
+            font-weight: 700;
+        }
+
+        button.action[type="submit"] {
+            background: #176b9d;
+            color: white;
+            border-color: #176b9d;
+        }
+
+        #reportModal {
+            padding: 10px;
+        }
+
+        .report-box {
+            width: 100%;
+            padding: 14px;
+            border-radius: 10px;
+        }
+
+        .report-table {
+            font-size: 11px;
+        }
+
+        .report-table th,
+        .report-table td {
+            padding: 5px;
+        }
+
+        .report-actions {
+            display: grid;
+            gap: 8px;
+        }
+
+        .report-actions button {
+            width: 100%;
+            margin: 0;
+            min-height: 42px;
+        }
+    }
+
+    @media (min-width: 701px) {
+        .mobile-header { display: none; }
+    }
+
+
+/* =========================================================
+   DESKTOP REDESIGN — CDRRMO INCIDENT LOG
+   ========================================================= */
+@media (min-width: 701px) {
+    body {
+        padding: 0;
+        background: #eef2f5;
+        color: #18232d;
+        font-size: 13px;
+    }
+
+    .form-container {
+        width: 1180px;
+        max-width: calc(100% - 36px);
+        margin: 24px auto 40px;
+        background: #fff;
+        border: 1px solid #d7dfe5;
+        border-radius: 14px;
+        box-shadow: 0 6px 24px rgba(27, 49, 66, .10);
+        overflow: hidden;
+    }
+
+    /* Professional desktop header */
+    .mobile-header {
+        display: flex;
+        align-items: center;
+        gap: 16px;
+        min-height: 88px;
+        padding: 15px 28px;
+        background: linear-gradient(135deg, #123d68 0%, #176b9d 58%, #1c789e 100%);
+        color: #fff;
+        position: relative;
+        overflow: hidden;
+    }
+
+    .mobile-header::after {
+        content: "";
+        position: absolute;
+        right: -70px;
+        top: -120px;
+        width: 330px;
+        height: 330px;
+        border: 45px solid rgba(255,255,255,.07);
+        border-radius: 50%;
+    }
+
+    .header-mark {
+        width: 58px;
+        height: 58px;
+        flex: 0 0 58px;
+        border: 2px solid rgba(255,255,255,.85);
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 11px;
+        font-weight: 800;
+        letter-spacing: .6px;
+        position: relative;
+        overflow: hidden;
+        z-index: 1;
+    }
+
+    .header-copy {
+        position: relative;
+        z-index: 1;
+    }
+
+    .office-name {
+        font-size: 16px;
+        font-weight: 800;
+        letter-spacing: 1px;
+    }
+
+    .office-title {
+        font-size: 13px;
+        opacity: .95;
+        margin-top: 2px;
+    }
+
+    .form-title {
+        display: inline-block;
+        margin-top: 7px;
+        padding: 4px 11px;
+        border-radius: 12px;
+        background: rgba(255,255,255,.15);
+        font-size: 10px;
+        font-weight: 800;
+        letter-spacing: 2px;
+    }
+
+    .desktop-title {
+        display: none;
+    }
+
+    form {
+        padding: 22px 26px 26px;
+    }
+
+    /* Upper information panels */
+    .top-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 18px;
+        margin-top: 0;
+    }
+
+    .left, .right {
+        min-width: 0;
+        background: #f9fbfc;
+        border: 1px solid #dce4e9;
+        border-radius: 10px;
+        padding: 16px 18px 12px;
+    }
+
+    .left::before,
+    .right::before {
+        display: block;
+        font-size: 12px;
+        font-weight: 800;
+        letter-spacing: .8px;
+        color: #176b9d;
+        margin-bottom: 11px;
+        padding-bottom: 7px;
+        border-bottom: 2px solid #dcecf5;
+    }
+
+    .left::before { content: "INCIDENT DETAILS"; }
+    .right::before { content: "CALL & RESPONSE TIMELINE"; }
+
+    .row {
+        display: grid;
+        grid-template-columns: 172px minmax(0,1fr);
+        align-items: center;
+        gap: 8px;
+        min-height: 32px;
+        margin-bottom: 8px;
+    }
+
+    .left .label,
+    .right .label {
+        width: auto;
+        margin: 0;
+        text-align: right;
+        white-space: nowrap;
+        color: #43525e;
+        font-weight: 600;
+    }
+
+    input[type="text"],
+    input[type="date"],
+    input[type="time"],
+    input[type="number"],
+    select {
+        height: 34px;
+        min-height: 34px;
+        width: 100%;
+        border: 1px solid #b9c5ce;
+        border-radius: 6px;
+        padding: 5px 9px;
+        font: inherit;
+        background: #fff;
+        color: #18232d;
+        transition: border-color .15s, box-shadow .15s;
+    }
+
+    input:focus,
+    select:focus,
+    textarea:focus {
+        outline: none;
+        border-color: #176b9d;
+        box-shadow: 0 0 0 3px rgba(23,107,157,.10);
+    }
+
+    .resource-input { width: 100%; }
+
+    .resource-row {
+        grid-template-columns: 172px minmax(0,1fr) 30px;
+    }
+
+    .add-btn, .remove-btn {
+        width: 26px;
+        height: 26px;
+        flex: 0 0 auto;
+        padding: 0;
+        border: 1px solid #b9c9d3;
+        border-radius: 50%;
+        background: #fff;
+        cursor: pointer;
+        font-size: 17px;
+        line-height: 22px;
+        text-align: center;
+        transition: .15s;
+    }
+
+    .add-btn { color: #176b9d; }
+
+    .add-btn:hover {
+        background: #176b9d;
+        color: #fff;
+        border-color: #176b9d;
+    }
+
+    .remove-btn { color: #d00; }
+
+    .remove-btn:hover {
+        background: #d00;
+        color: #fff;
+        border-color: #d00;
+    }
+
+    /* Keep time picker immediately beside its title */
+    .right .row:has(input[type="time"]) {
+        grid-template-columns: 172px 130px;
+        gap: 8px;
+        justify-content: start;
+        margin-bottom: 7px;
+    }
+
+    .right .row:has(input[type="time"]) .label {
+        width: auto;
+        text-align: right;
+        margin: 0;
+    }
+
+    .right .row:has(input[type="time"]) .time-input {
+        width: 130px !important;
+        margin: 0 !important;
+    }
+
+    .right .row:nth-of-type(3) {
+        grid-template-columns: 172px 160px 74px 130px;
+    }
+
+    .right .row:nth-of-type(3) .label:nth-of-type(2) {
+        width: auto;
+    }
+
+    .spacer {
+        height: 18px;
+    }
+
+    /* Place of incident */
+    .place-row {
+        display: flex;
+        align-items: flex-start;
+        margin: 0;
+        padding: 14px 16px 11px;
+        background: #f9fbfc;
+        border: 1px solid #dce4e9;
+        border-radius: 10px;
+    }
+
+    .place-row .label {
+        width: 168px;
+        text-align: right;
+        margin: 8px 12px 0 0;
+        font-weight: 700;
+        color: #43525e;
+    }
+
+    .place-row .place-group {
+        width: 220px;
+        margin-right: 28px;
+        text-align: left;
+    }
+
+    .place-group input {
+        width: 100%;
+    }
+
+    .place-group div {
+        margin-top: 5px;
+        font-size: 11px;
+        color: #6c7882;
+        font-weight: 600;
+    }
+
+    .section-title {
+        margin: 18px 0 8px;
+        padding-left: 3px;
+        font-size: 12px;
+        font-weight: 800;
+        letter-spacing: 1px;
+        color: #176b9d;
+    }
+
+    /* Patient / victim table-like layout */
+    #victims {
+        border: 1px solid #dce4e9;
+        border-radius: 10px;
+        overflow: hidden;
+    }
+
+    .victim-row {
+        display: grid;
+        grid-template-columns: 160px 1.15fr 42px 62px 58px 1.1fr 115px 1.3fr 30px;
+        align-items: center;
+        gap: 6px;
+        padding: 8px 10px;
+        margin: 0;
+        border-bottom: 1px solid #e3e8ec;
+        background: #fff;
+    }
+
+    .victim-row:first-child {
+        background: #f2f7fa;
+        font-size: 12px;
+    }
+
+    .victim-row:last-child {
+        border-bottom: 0;
+    }
+
+    .victim-row > span {
+        text-align: right;
+        color: #52616c;
+        font-weight: 600;
+    }
+
+    .victim-row input {
+        width: 100%;
+    }
+
+    .victim-row > div {
+        display: flex;
+        align-items: center;
+        gap: 4px;
+        min-width: 0;
+    }
+
+    .victim-row > div input {
+        flex: 1;
+        min-width: 0;
+    }
+
+    /* Checkbox cards */
+    .checkbox-row {
+        display: flex;
+        align-items: center;
+        min-height: 42px;
+        margin: 9px 0 0;
+        padding: 8px 12px;
+        background: #f9fbfc;
+        border: 1px solid #dce4e9;
+        border-radius: 8px;
+    }
+
+    .checkbox-row .label {
+        width: 210px;
+        margin-right: 10px;
+        text-align: right;
+        font-weight: 700;
+        color: #43525e;
+        white-space: normal;
+        line-height: 1.25;
+    }
+
+    .checks {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    .checks label {
+        display: inline-flex;
+        align-items: center;
+        gap: 5px;
+        min-height: 30px;
+        padding: 4px 9px;
+        border: 1px solid #d3dce2;
+        border-radius: 6px;
+        background: #fff;
+        white-space: nowrap;
+        cursor: pointer;
+    }
+
+    .checks label:hover {
+        border-color: #9fb4c2;
+    }
+
+    input[type="checkbox"] {
+        width: 14px;
+        height: 14px;
+        margin: 0;
+    }
+
+    .remarks-row {
+        display: grid;
+        grid-template-columns: 168px 620px;
+        align-items: start;
+        margin: 10px 0 0;
+        padding: 12px 14px;
+        background: #f9fbfc;
+        border: 1px solid #dce4e9;
+        border-radius: 8px;
+    }
+
+    .remarks-row .label {
+        width: auto;
+        text-align: right;
+        margin: 7px 12px 0 0;
+        font-weight: 700;
+        color: #43525e;
+    }
+
+    textarea {
+        width: 100%;
+        height: 62px;
+        min-height: 62px;
+        resize: vertical;
+        border: 1px solid #b9c5ce;
+        border-radius: 6px;
+        padding: 7px 9px;
+        font: inherit;
+    }
+
+    /* Responding team */
+    .team-section {
+        margin-top: 14px;
+        padding: 13px 14px;
+        background: #f9fbfc;
+        border: 1px solid #dce4e9;
+        border-radius: 8px;
+    }
+
+    .team-title {
+        display: block;
+        width: auto;
+        text-align: left;
+        margin: 0 0 10px;
+        color: #176b9d;
+        font-weight: 800;
+        letter-spacing: .7px;
+        font-size: 12px;
+    }
+
+    .team-columns {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 40px;
+        margin: 0;
+    }
+
+    .team-col {
+        width: 100%;
+    }
+
+    .team-col + .team-col {
+        border-left: 1px solid #dce4e9;
+        padding-left: 40px;
+    }
+
+    .team-item {
+        display: flex;
+        align-items: center;
+        gap: 5px;
+        margin-bottom: 6px;
+    }
+
+    .team-item select {
+        width: 280px;
+    }
+
+    .team-caption {
+        text-align: left;
+        margin-top: 2px;
+        padding-left: 2px;
+        font-size: 11px;
+        color: #6c7882;
+        font-weight: 700;
+    }
+
+    /* Action bar */
+    .actions {
+        display: flex;
+        justify-content: flex-end;
+        gap: 10px;
+        margin: 20px 0 0;
+        padding-top: 15px;
+        border-top: 1px solid #dfe5e9;
+    }
+
+    button.action {
+        width: 150px;
+        height: 42px;
+        border: 1px solid #aebbc4;
+        border-radius: 7px;
+        background: #fff;
+        color: #33424d;
+        cursor: pointer;
+        font-size: 13px;
+        font-weight: 700;
+        transition: .15s;
+    }
+
+    button.action:hover {
+        background: #f1f4f6;
+    }
+
+    button.action[type="submit"] {
+        background: #176b9d;
+        border-color: #176b9d;
+        color: #fff;
+    }
+
+    button.action[type="submit"]:hover {
+        background: #125b85;
+    }
+
+    .required-empty {
+        border: 2px solid #d00000 !important;
+        background: #fff5f5 !important;
+    }
+
+    .check-required-empty {
+        outline: 2px solid #d00000;
+        outline-offset: 1px;
+    }
+}
+
+/* =========================================================
+   PRINT — report only, single page
+   ========================================================= */
+@media print {
+    @page { margin: 10mm; }
+
+    body {
+        background: #fff;
+        padding: 0;
+    }
+
+    .form-container,
+    .report-actions,
+    .add-btn,
+    .remove-btn {
+        display: none !important;
+    }
+
+    #reportModal {
+        position: absolute;
+        inset: 0;
+        background: #fff;
+        padding: 0;
+        overflow: visible;
+    }
+
+    .report-box {
+        width: 100%;
+        max-width: 100%;
+        margin: 0;
+        padding: 0;
+        box-shadow: none;
+        border: 0;
+    }
+
+    .report-header {
+        margin-bottom: 12px;
+    }
+
+    .report-table {
+        font-size: 11px;
+    }
+}
+

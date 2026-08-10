@@ -1,0 +1,337 @@
+const EMAIL_TO = "cdrrmotabaco2014@gmail.com";
+const SHEETS_WEB_APP_URL = "";
+
+function resourceOptions() {
+    return `
+        <option value="">-- Select Resource --</option>
+        <option>EMS</option>
+        <option>884 STARIA</option>
+        <option>FIRETRUCK</option>
+        <option>028</option>
+        <option>167</option>
+        <option>133</option>
+        <option>NAVARRA WHITE</option>
+        <option>NAVARRA GRAY</option>`;
+}
+
+function addResource() {
+    const div = document.createElement("div");
+    div.className = "row resource-row";
+    div.innerHTML = `
+        <span class="label">Dispatched Resource:</span>
+        <select name="resource[]" class="resource-input required" required>${resourceOptions()}</select>
+        <button type="button" class="remove-btn" onclick="removeResource(this)" title="Remove resource">&#8722;</button>
+    `;
+    document.getElementById("resources").appendChild(div);
+}
+
+function removeResource(btn) {
+    btn.closest(".resource-row").remove();
+}
+
+function addVictim() {
+    const count = document.querySelectorAll("#victims .victim-item").length;
+    const letter = String.fromCharCode(65 + count);
+    const div = document.createElement("div");
+    div.className = "victim-row victim-item";
+    div.dataset.index = count + 1;
+    div.innerHTML = `
+        <span class="patient-label">(${letter}) Patient / Victim</span>
+        <input type="text" name="patient[]" class="required" required>
+        <span style="text-align:right;">Age:</span>
+        <input type="number" name="age[]" class="age required" min="0" required>
+        <span style="text-align:right;">Address:</span>
+        <input type="text" name="address[]" class="required" required>
+        <span class="inj-label">Injuries Description:</span>
+        <div style="display:flex;align-items:center;">
+            <input type="text" name="injury[]" class="required" required>
+            <button type="button" class="remove-btn" onclick="removeVictim(this)" title="Remove patient/victim">&#8722;</button>
+        </div>
+    `;
+    document.getElementById("victims").appendChild(div);
+    renumberVictims();
+}
+
+function removeVictim(btn) {
+    btn.closest(".victim-item").remove();
+    renumberVictims();
+}
+
+function renumberVictims() {
+    document.querySelectorAll("#victims .victim-item").forEach((row, i) => {
+        const letter = String.fromCharCode(65 + i);
+        const label = row.querySelector(".patient-label");
+        if (label) label.textContent = `(${letter}) Patient / Victim`;
+        row.dataset.index = i + 1;
+    });
+}
+
+function driverOptions() {
+    return `
+        <option value="">-- Select Driver --</option>
+        <option>Jonel Beundia</option>
+        <option>Eugene Cao</option>
+        <option>Ariel Bolaños</option>`;
+}
+function responderOptions() {
+    return `
+        <option value="">-- Select Responder --</option>
+        <option>Shay Buenavidez</option>
+        <option>Joan Sayago</option>
+        <option>Ero Obrero</option>
+        <option>Janine Base</option>`;
+}
+function addDriver() {
+    const div = document.createElement("div");
+    div.className = "team-item driver-item";
+    div.innerHTML = `
+        <select name="driver[]" class="required" required>${driverOptions()}</select>
+        <button type="button" class="remove-btn" onclick="removeDriver(this)" title="Remove driver">&#8722;</button>`;
+    document.getElementById("drivers").appendChild(div);
+}
+function removeDriver(btn) {
+    btn.closest(".driver-item").remove();
+}
+function addResponder() {
+    const div = document.createElement("div");
+    div.className = "team-item responder-item";
+    div.innerHTML = `
+        <select name="responder[]" class="required" required>${responderOptions()}</select>
+        <button type="button" class="remove-btn" onclick="removeResponder(this)" title="Remove responder">&#8722;</button>`;
+    document.getElementById("responders").appendChild(div);
+}
+function removeResponder(btn) {
+    btn.closest(".responder-item").remove();
+}
+
+// Make checkbox pairs/groups behave like radio buttons while retaining checkbox appearance.
+document.querySelectorAll(".exclusive-group").forEach(group => {
+    group.addEventListener("change", e => {
+        if (e.target.type === "checkbox" && e.target.checked) {
+            group.querySelectorAll('input[type="checkbox"]').forEach(cb => {
+                if (cb !== e.target) cb.checked = false;
+            });
+            group.classList.remove("check-required-empty");
+        }
+    });
+});
+
+function validateForm() {
+    let valid = true;
+    document.querySelectorAll(".required").forEach(el => {
+        el.classList.remove("required-empty");
+        if (!String(el.value || "").trim()) {
+            el.classList.add("required-empty");
+            valid = false;
+        }
+    });
+
+    document.querySelectorAll(".exclusive-group").forEach(group => {
+        const checked = group.querySelector('input[type="checkbox"]:checked');
+        group.classList.remove("check-required-empty");
+        if (!checked) {
+            group.classList.add("check-required-empty");
+            valid = false;
+        }
+    });
+
+    const firstEmpty = document.querySelector(".required-empty");
+    if (firstEmpty) firstEmpty.scrollIntoView({behavior:"smooth", block:"center"});
+
+    if (!valid) alert("Please fill all the required fields.");
+    return valid;
+}
+
+function getValues(name) {
+    return [...document.querySelectorAll(`[name="${name}"]`)].map(x => x.value);
+}
+
+function esc(value) {
+    return String(value ?? "").replace(/[&<>"']/g, c => ({
+        "&":"&amp;", "<":"&lt;", ">":"&gt;", '"':"&quot;", "'":"&#039;"
+    }[c]));
+}
+
+function checkedValue(name) {
+    const x = document.querySelector(`input[name="${name}"]:checked`);
+    return x ? x.value : "";
+}
+
+function buildReport() {
+    const resources = getValues("resource[]");
+    const patients = getValues("patient[]");
+    const ages = getValues("age[]");
+    const addresses = getValues("address[]");
+    const injuries = getValues("injury[]");
+    const drivers = getValues("driver[]");
+    const responders = getValues("responder[]");
+
+    let patientRows = patients.map((p, i) => `
+        <tr>
+            <td>${i + 1}</td>
+            <td>${esc(p)}</td>
+            <td>${esc(ages[i])}</td>
+            <td>${esc(addresses[i])}</td>
+            <td>${esc(injuries[i])}</td>
+        </tr>`).join("");
+
+    return `
+        <table class="report-table">
+            <tr><th>Nature of Incident</th><td>${esc(document.getElementById("nature").value)}</td>
+                <th>Assigned Team</th><td>${esc(document.getElementById("assignedTeam").value)}</td></tr>
+            <tr><th>Shift-In-Charge (SIC)</th><td>${esc(document.querySelector('[name="sic"]').value)}</td>
+                <th>Operator in Charge</th><td>${esc(document.querySelector('[name="operator"]').value)}</td></tr>
+            <tr><th>Dispatched Resource(s)</th><td colspan="3">${resources.map(esc).join("<br>")}</td></tr>
+            <tr><th>Incident Caller / Informant</th><td>${esc(document.querySelector('[name="caller"]').value)}</td>
+                <th>Contact No.</th><td>${esc(document.querySelector('[name="contact"]').value)}</td></tr>
+            <tr><th>Call Date</th><td>${esc(document.querySelector('[name="callDate"]').value)}</td>
+                <th>Call Time</th><td>${esc(document.querySelector('[name="callTime"]').value)}</td></tr>
+            <tr><th>Dispatched Time</th><td>${esc(document.querySelector('[name="dispatchedTime"]').value)}</td>
+                <th>Arrival at Scene</th><td>${esc(document.querySelector('[name="arrivalTime"]').value)}</td></tr>
+            <tr><th>Take Off from Scene</th><td>${esc(document.querySelector('[name="takeoffTime"]').value)}</td>
+                <th>Arrival at Hospital</th><td>${esc(document.querySelector('[name="hospitalTime"]').value)}</td></tr>
+            <tr><th>Barangay</th><td>${esc(document.querySelector('[name="barangay"]').value)}</td>
+                <th>Municipality</th><td>${esc(document.querySelector('[name="municipality"]').value)}</td></tr>
+            <tr><th>Patients / Victims</th><td colspan="3">
+                <table class="report-table">
+                    <tr><th>No.</th><th>Patient / Victim</th><th>Age</th><th>Address</th><th>Injuries Description</th></tr>
+                    ${patientRows}
+                </table>
+            </td></tr>
+            <tr><th>Is Anyone Involved under the influence of alchohol?</th><td>${esc(checkedValue("liquor"))}</td>
+                <th>Status</th><td>${esc(checkedValue("status"))}</td></tr>
+            <tr><th>First Aid Provided</th><td colspan="3">${esc(document.querySelector('[name="firstAid"]').value)}</td></tr>
+            <tr><th>Remarks</th><td colspan="3">${esc(document.querySelector('[name="remarks"]').value)}</td></tr>
+            <tr><th>Driver(s)</th><td>${drivers.map(esc).join("<br>")}</td>
+                <th>Responder(s)</th><td>${responders.map(esc).join("<br>")}</td></tr>
+        </table>`;
+}
+
+let reportHTML = "";
+
+document.getElementById("incidentForm").addEventListener("submit", function(e) {
+    e.preventDefault();
+    if (!validateForm()) return;
+
+    reportHTML = buildReport();
+    document.getElementById("reportContent").innerHTML = reportHTML;
+    document.getElementById("reportModal").style.display = "block";
+});
+
+function buildReportData() {
+    const val = name => document.querySelector(`[name="${name}"]`).value;
+    const patients = getValues("patient[]");
+    const ages = getValues("age[]");
+    const addresses = getValues("address[]");
+    const injuries = getValues("injury[]");
+
+    return {
+        nature: val("nature"),
+        assignedTeam: val("assignedTeam"),
+        sic: val("sic"),
+        operator: val("operator"),
+        resources: getValues("resource[]"),
+        caller: val("caller"),
+        contact: val("contact"),
+        callDate: val("callDate"),
+        callTime: val("callTime"),
+        dispatchedTime: val("dispatchedTime"),
+        arrivalTime: val("arrivalTime"),
+        takeoffTime: val("takeoffTime"),
+        hospitalTime: val("hospitalTime"),
+        barangay: val("barangay"),
+        municipality: val("municipality"),
+        patients: patients.map((p, i) => ({
+            patient: p,
+            age: ages[i],
+            address: addresses[i],
+            injury: injuries[i]
+        })),
+        liquor: checkedValue("liquor"),
+        status: checkedValue("status"),
+        firstAid: val("firstAid"),
+        remarks: val("remarks"),
+        drivers: getValues("driver[]"),
+        responders: getValues("responder[]")
+    };
+}
+
+function saveToSheet() {
+    if (!SHEETS_WEB_APP_URL) {
+        alert("Google Sheets is not configured yet. Open js/main.js and paste your Apps Script Web App URL into SHEETS_WEB_APP_URL.");
+        return;
+    }
+
+    fetch(SHEETS_WEB_APP_URL, {
+        method: "POST",
+        mode: "cors",
+        body: JSON.stringify(buildReportData())
+    })
+        .then(r => r.json())
+        .then(res => {
+            if (res.ok) alert("Report saved to Google Sheets.");
+            else alert("Save failed: " + (res.error || "unknown error"));
+        })
+        .catch(err => alert("Save failed: " + err));
+}
+
+function sendReport() {
+    // A pure HTML page cannot silently send email. This creates an email in
+    // the user's configured mail application addressed to the CDRRMO email.
+    const text = document.getElementById("reportContent").innerText;
+    const subject = "Tabaco CDRRMO Situation Report - " +
+        document.querySelector('[name="callDate"]').value;
+    const body = text;
+    window.location.href =
+        "mailto:" + EMAIL_TO +
+        "?subject=" + encodeURIComponent(subject) +
+        "&body=" + encodeURIComponent(body);
+}
+
+function closeReport() {
+    document.getElementById("reportModal").style.display = "none";
+}
+
+function clearForm() {
+    if (!confirm("Are you sure you want to clear all fields?")) return;
+    const form = document.getElementById("incidentForm");
+    form.reset();
+
+    // Restore dynamic sections to one initial row.
+    document.getElementById("resources").innerHTML = `
+        <div class="row resource-row">
+            <span class="label">Dispatched Resource:</span>
+            <select name="resource[]" class="resource-input required" required>${resourceOptions()}</select>
+            <button type="button" class="add-btn" onclick="addResource()" title="Add resource">+</button>
+        </div>`;
+
+    document.getElementById("victims").innerHTML = `
+        <div class="victim-row victim-item" data-index="1">
+            <span class="patient-label">(A) Patient / Victim</span>
+            <input type="text" name="patient[]" class="required" required>
+            <span style="text-align:right;">Age:</span>
+            <input type="number" name="age[]" class="age required" min="0" required>
+            <span style="text-align:right;">Address:</span>
+            <input type="text" name="address[]" class="required" required>
+            <span class="inj-label">Injuries Description:</span>
+            <div style="display:flex;align-items:center;">
+                <input type="text" name="injury[]" class="required" required>
+                <button type="button" class="add-btn" onclick="addVictim()" title="Add patient/victim">+</button>
+            </div>
+        </div>`;
+
+    document.getElementById("drivers").innerHTML = `
+        <div class="team-item driver-item">
+            <select name="driver[]" class="required" required>${driverOptions()}</select>
+            <button type="button" class="add-btn" onclick="addDriver()" title="Add driver">+</button>
+        </div>`;
+
+    document.getElementById("responders").innerHTML = `
+        <div class="team-item responder-item">
+            <select name="responder[]" class="required" required>${responderOptions()}</select>
+            <button type="button" class="add-btn" onclick="addResponder()" title="Add responder">+</button>
+        </div>`;
+
+    document.querySelectorAll(".required-empty").forEach(el => el.classList.remove("required-empty"));
+    document.querySelectorAll(".check-required-empty").forEach(el => el.classList.remove("check-required-empty"));
+}
