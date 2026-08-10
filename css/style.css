@@ -89,17 +89,36 @@
     .place-group input { width: 130px; }
     .place-group div { margin-top: 3px; }
 
+    .victim-item {
+        margin-bottom: 6px;
+    }
     .victim-row {
         display: grid;
-        grid-template-columns: 92px 225px 58px 44px 55px 215px 78px 215px;
+        grid-template-columns: 92px 225px 58px 44px 55px 215px;
         align-items: center;
         gap: 4px;
         margin-bottom: 6px;
     }
     .victim-row input { width: 100%; }
-    .victim-row .age { width: 44px; }
+    .victim-row .age { width: 60px; }
     .victim-row .patient-label { text-align: right; }
-    .victim-row .inj-label { text-align: right; }
+    .victim-status-row {
+        display: grid;
+        grid-template-columns: 150px 160px 150px 160px 150px 160px 150px 160px 30px;
+        align-items: center;
+        gap: 12px 4px;
+    }
+    .victim-status-row > span { text-align: right; }
+    .vehicle-row {
+        display: grid;
+        grid-template-columns: 1fr 30px;
+        gap: 5px;
+        align-items: center;
+    }
+    .vehicle-row select {
+        width: 100%;
+        min-width: 0;
+    }
 
     .checkbox-row {
         display: flex;
@@ -281,11 +300,6 @@
         body { padding: 10px; }
         .top-grid { grid-template-columns: 1fr; }
         .spacer { display: none; }
-        .victim-row {
-            grid-template-columns: 92px 1fr 45px 45px 55px 1fr;
-        }
-        .victim-row .inj-label { grid-column: 1; }
-        .victim-row .injury { grid-column: 2 / -1; }
         .team-columns { margin-left: 0; }
         .team-title { width: auto; }
     }
@@ -520,15 +534,28 @@
             margin-right: 12px;
         }
 
-        .victim-row {
-            display: block;
+        .victim-item {
             padding: 10px 0;
-            margin: 0;
             border-bottom: 1px solid #e4e8eb;
         }
 
-        .victim-row:last-child {
+        .victim-item:nth-child(odd) {
+            background: #fff;
+        }
+
+        .victim-item:nth-child(even) {
+            background: #f2f7fa;
+        }
+
+        .victim-item:last-child {
             border-bottom: 0;
+        }
+
+        .victim-row {
+            display: block;
+            padding: 0;
+            margin: 0;
+            border: 0;
         }
 
         .victim-row > span {
@@ -543,15 +570,32 @@
             margin-bottom: 9px;
         }
 
-        .victim-row > div {
-            display: flex !important;
-            gap: 4px;
-            align-items: center;
+        .victim-status-row {
+            display: block;
+            margin-top: 4px;
         }
 
-        .victim-row > div input {
-            flex: 1;
-            min-width: 0;
+        .victim-status-row > span {
+            display: block;
+            text-align: left !important;
+            margin: 0 0 5px;
+            color: #344454;
+            font-weight: 700;
+        }
+
+        .victim-status-row input {
+            margin-bottom: 9px;
+        }
+
+        .victim-status-row select {
+            width: 100% !important;
+            margin-bottom: 9px;
+        }
+
+        .victim-status-row .add-btn,
+        .victim-status-row .remove-btn {
+            margin-top: 8px;
+            margin-left: auto;
         }
 
         .add-btn, .remove-btn {
@@ -607,6 +651,24 @@
         input[type="checkbox"] {
             width: 17px;
             height: 17px;
+        }
+
+        .vehicle-card {
+            display: block;
+            background: #fff;
+            margin: 0 12px 10px;
+            padding: 12px;
+            border: 1px solid #e0e5e9;
+            border-radius: 10px;
+            box-shadow: 0 1px 4px rgba(0,0,0,.04);
+        }
+
+        .vehicle-card > .label {
+            display: block;
+            text-align: left;
+            margin: 0 0 9px;
+            font-weight: 700;
+            color: #344454;
         }
 
         .remarks-row {
@@ -929,30 +991,25 @@
     }
 
     /* Keep time picker immediately beside its title */
-    .right .row:has(input[type="time"]) {
+    .right .row:has(input[type="time"]),
+    .right .row:has(input[type="date"]) {
         grid-template-columns: 172px 130px;
         gap: 8px;
         justify-content: start;
         margin-bottom: 7px;
     }
 
-    .right .row:has(input[type="time"]) .label {
+    .right .row:has(input[type="time"]) .label,
+    .right .row:has(input[type="date"]) .label {
         width: auto;
         text-align: right;
         margin: 0;
     }
 
-    .right .row:has(input[type="time"]) .time-input {
+    .right .row:has(input[type="time"]) .time-input,
+    .right .row:has(input[type="date"]) .time-input {
         width: 130px !important;
         margin: 0 !important;
-    }
-
-    .right .row:nth-of-type(3) {
-        grid-template-columns: 172px 160px 74px 130px;
-    }
-
-    .right .row:nth-of-type(3) .label:nth-of-type(2) {
-        width: auto;
     }
 
     .spacer {
@@ -1011,24 +1068,28 @@
         overflow: hidden;
     }
 
-    .victim-row {
-        display: grid;
-        grid-template-columns: 160px 1.15fr 42px 62px 58px 1.1fr 115px 1.3fr 30px;
-        align-items: center;
-        gap: 6px;
+    .victim-item {
         padding: 8px 10px;
-        margin: 0;
         border-bottom: 1px solid #e3e8ec;
+    }
+
+    .victim-item:nth-child(odd) {
         background: #fff;
     }
 
-    .victim-row:first-child {
+    .victim-item:nth-child(even) {
         background: #f2f7fa;
-        font-size: 12px;
     }
 
-    .victim-row:last-child {
+    .victim-item:last-child {
         border-bottom: 0;
+    }
+
+    .victim-row {
+        display: grid;
+        grid-template-columns: 150px minmax(0, 1fr) 42px 80px 58px minmax(0, 1fr);
+        align-items: center;
+        gap: 6px;
     }
 
     .victim-row > span {
@@ -1041,16 +1102,29 @@
         width: 100%;
     }
 
-    .victim-row > div {
-        display: flex;
+    .victim-status-row {
+        display: grid;
+        grid-template-columns: 150px minmax(0, 1fr) 150px minmax(0, 1fr) 150px minmax(0, 1fr) 150px minmax(0, 1fr) 30px;
         align-items: center;
-        gap: 4px;
-        min-width: 0;
+        gap: 12px 6px;
+        margin-top: 7px;
+        padding-top: 7px;
+        border-top: 1px dashed #c9d6de;
     }
 
-    .victim-row > div input {
-        flex: 1;
-        min-width: 0;
+    .victim-status-row > span {
+        text-align: right;
+        color: #52616c;
+        font-weight: 600;
+    }
+
+    .victim-status-row select {
+        width: 100%;
+    }
+
+    .victim-status-row .add-btn,
+    .victim-status-row .remove-btn {
+        justify-self: center;
     }
 
     /* Checkbox cards */
@@ -1102,6 +1176,27 @@
         width: 14px;
         height: 14px;
         margin: 0;
+    }
+
+    /* Involved vehicle type list */
+    .vehicle-card {
+        display: grid;
+        grid-template-columns: 168px minmax(0, 1fr);
+        align-items: center;
+        gap: 8px;
+        margin: 9px 0 0;
+        padding: 10px 12px;
+        background: #f9fbfc;
+        border: 1px solid #dce4e9;
+        border-radius: 8px;
+    }
+
+    .vehicle-card > .label {
+        text-align: right;
+        margin: 0;
+        color: #43525e;
+        font-weight: 700;
+        white-space: nowrap;
     }
 
     .remarks-row {
@@ -1235,6 +1330,27 @@
     .check-required-empty {
         outline: 2px solid #d00000;
         outline-offset: 1px;
+    }
+}
+
+/* =========================================================
+   TABLET — wrap the four victim detail fields onto 2 lines
+   ========================================================= */
+@media (max-width: 1140px) and (min-width: 701px) {
+    .victim-status-row {
+        grid-template-columns: 150px minmax(0, 1fr) 150px minmax(0, 1fr) 30px;
+    }
+
+    .victim-status-row .add-btn,
+    .victim-status-row .remove-btn {
+        grid-column: 5;
+        grid-row: 1 / 3;
+        justify-self: center;
+        align-self: center;
+    }
+
+    .victim-row {
+        grid-template-columns: 150px minmax(0, 1fr) 42px 70px 55px minmax(0, 1fr);
     }
 }
 

@@ -94,8 +94,10 @@
                 </div>
                 <div class="row">
                     <span class="label">Call Date:</span>
-                    <input type="date" name="callDate" class="date-input required" required>
-                    <span class="label" style="width:105px;margin-left:auto;">Call Time:</span>
+                    <input type="date" name="callDate" class="time-input required" required>
+                </div>
+                <div class="row">
+                    <span class="label">Call Time:</span>
                     <input type="time" name="callTime" class="time-input required" required>
                 </div>
                 <div class="row">
@@ -131,40 +133,68 @@
             </div>
         </div>
 
-        <div class="section-title" style="margin-left:100px;">Involved:</div>
+        <div class="section-title">Involved:</div>
 
         <div id="victims">
-            <div class="victim-row victim-item" data-index="1">
-                <span class="patient-label">(A) Patient / Victim</span>
-                <input type="text" name="patient[]" class="required" required>
-                <span style="text-align:right;">Age:</span>
-                <input type="number" name="age[]" class="age required" min="0" required>
-                <span style="text-align:right;">Address:</span>
-                <input type="text" name="address[]" class="required" required>
-                <span class="inj-label">Injuries Description:</span>
-                <div style="display:flex;align-items:center;">
+            <div class="victim-item" data-index="1">
+                <div class="victim-row">
+                    <span class="patient-label">(A) Patient / Victim</span>
+                    <input type="text" name="patient[]" class="required" required>
+                    <span style="text-align:right;">Age:</span>
+                    <input type="number" name="age[]" class="age required" min="0" required>
+                    <span style="text-align:right;">Address:</span>
+                    <input type="text" name="address[]" class="required" required>
+                </div>
+                <div class="victim-status-row">
+                    <span class="inj-label">Injuries Description:</span>
                     <input type="text" name="injury[]" class="required" required>
+                    <span>Status of Victim:</span>
+                    <select name="victimStatus[]" class="required" required>
+                        <option value="">-- Select --</option>
+                        <option>Conscious</option>
+                        <option>Alert</option>
+                        <option>Semi-Conscious</option>
+                        <option>Unconscious</option>
+                        <option>Responsive to Verbal Stimuli</option>
+                        <option>Responsive to Pain Stimuli</option>
+                        <option>Unresponsive</option>
+                        <option>Others</option>
+                    </select>
+                    <span>Initial Impression:</span>
+                    <input type="text" name="initialImpression[]" placeholder="e.g., smells of alcohol">
+                    <span>Disposition of Victim:</span>
+                    <select name="disposition[]" class="required" required>
+                        <option value="">-- Select --</option>
+                        <option>In-Patient</option>
+                        <option>Demised</option>
+                        <option>Declined Hospitalization</option>
+                        <option>N/A</option>
+                    </select>
                     <button type="button" class="add-btn" onclick="addVictim()" title="Add patient/victim">+</button>
                 </div>
             </div>
         </div>
 
-        <div class="checkbox-row">
-            <span class="label">Is Anyone Involved under the influence of alchohol?</span>
-            <div class="checks exclusive-group" data-group="liquor">
-                <label><input type="checkbox" name="liquor" value="Yes"> Yes</label>
-                <label><input type="checkbox" name="liquor" value="No"> No</label>
-                <label><input type="checkbox" name="liquor" value="N/A"> N/A</label>
-            </div>
-        </div>
-
-        <div class="checkbox-row">
-            <span class="label">Status of Patient / Victim:</span>
-            <div class="checks exclusive-group" data-group="status">
-                <label><input type="checkbox" name="status" value="In-Patient"> In-Patient</label>
-                <label><input type="checkbox" name="status" value="Demised"> Demised</label>
-                <label><input type="checkbox" name="status" value="Declined Hospitalization"> Declined Hospitalization</label>
-                <label><input type="checkbox" name="status" value="N/A"> N/A</label>
+        <div class="vehicle-card">
+            <span class="label">Involved Vehicle Type:</span>
+            <div id="vehicleTypes">
+                <div class="vehicle-row">
+                    <select name="vehicleType[]" class="required" required>
+                        <option value="">-- Select --</option>
+                        <option>Single Motorcycle</option>
+                        <option>Padyak (Motorcycle w/ Sidecar)</option>
+                        <option>Motor Tricycle</option>
+                        <option>Pedicab</option>
+                        <option>Bicycle</option>
+                        <option>Car / Van / SUV</option>
+                        <option>Jeepney</option>
+                        <option>Truck</option>
+                        <option>Bus</option>
+                        <option>Others</option>
+                        <option>N/A</option>
+                    </select>
+                    <button type="button" class="add-btn" onclick="addVehicleType()" title="Add vehicle type">+</button>
+                </div>
             </div>
         </div>
 

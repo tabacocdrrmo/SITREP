@@ -14,6 +14,35 @@ function resourceOptions() {
         <option>NAVARRA GRAY</option>`;
 }
 
+function vehicleTypeOptions() {
+    return `
+        <option value="">-- Select --</option>
+        <option>Single Motorcycle</option>
+        <option>Padyak (Motorcycle w/ Sidecar)</option>
+        <option>Motor Tricycle</option>
+        <option>Pedicab</option>
+        <option>Bicycle</option>
+        <option>Car / Van / SUV</option>
+        <option>Jeepney</option>
+        <option>Truck</option>
+        <option>Bus</option>
+        <option>Others</option>
+        <option>N/A</option>`;
+}
+
+function addVehicleType() {
+    const div = document.createElement("div");
+    div.className = "vehicle-row";
+    div.innerHTML = `
+        <select name="vehicleType[]" class="required" required>${vehicleTypeOptions()}</select>
+        <button type="button" class="remove-btn" onclick="removeVehicleType(this)" title="Remove vehicle type">&#8722;</button>`;
+    document.getElementById("vehicleTypes").appendChild(div);
+}
+
+function removeVehicleType(btn) {
+    btn.closest(".vehicle-row").remove();
+}
+
 function addResource() {
     const div = document.createElement("div");
     div.className = "row resource-row";
@@ -29,25 +58,59 @@ function removeResource(btn) {
     btn.closest(".resource-row").remove();
 }
 
+function victimStatusOptions() {
+    return `
+        <option value="">-- Select --</option>
+        <option>Conscious</option>
+        <option>Alert</option>
+        <option>Semi-Conscious</option>
+        <option>Unconscious</option>
+        <option>Responsive to Verbal Stimuli</option>
+        <option>Responsive to Pain Stimuli</option>
+        <option>Unresponsive</option>
+        <option>Others</option>`;
+}
+
+function dispositionOptions() {
+    return `
+        <option value="">-- Select --</option>
+        <option>In-Patient</option>
+        <option>Demised</option>
+        <option>Declined Hospitalization</option>
+        <option>N/A</option>`;
+}
+
+function victimItemHTML(letter, addRemoveBtn) {
+    return `
+        <div class="victim-row">
+            <span class="patient-label">(${letter}) Patient / Victim</span>
+            <input type="text" name="patient[]" class="required" required>
+            <span style="text-align:right;">Age:</span>
+            <input type="number" name="age[]" class="age required" min="0" required>
+            <span style="text-align:right;">Address:</span>
+            <input type="text" name="address[]" class="required" required>
+        </div>
+        <div class="victim-status-row">
+            <span class="inj-label">Injuries Description:</span>
+            <input type="text" name="injury[]" class="required" required>
+            <span>Status of Victim:</span>
+            <select name="victimStatus[]" class="required" required>${victimStatusOptions()}</select>
+            <span>Initial Impression:</span>
+            <input type="text" name="initialImpression[]" placeholder="e.g., smells of alcohol">
+            <span>Disposition of Victim:</span>
+            <select name="disposition[]" class="required" required>${dispositionOptions()}</select>
+            ${addRemoveBtn}
+        </div>`;
+}
+
 function addVictim() {
     const count = document.querySelectorAll("#victims .victim-item").length;
     const letter = String.fromCharCode(65 + count);
     const div = document.createElement("div");
-    div.className = "victim-row victim-item";
+    div.className = "victim-item";
     div.dataset.index = count + 1;
-    div.innerHTML = `
-        <span class="patient-label">(${letter}) Patient / Victim</span>
-        <input type="text" name="patient[]" class="required" required>
-        <span style="text-align:right;">Age:</span>
-        <input type="number" name="age[]" class="age required" min="0" required>
-        <span style="text-align:right;">Address:</span>
-        <input type="text" name="address[]" class="required" required>
-        <span class="inj-label">Injuries Description:</span>
-        <div style="display:flex;align-items:center;">
-            <input type="text" name="injury[]" class="required" required>
-            <button type="button" class="remove-btn" onclick="removeVictim(this)" title="Remove patient/victim">&#8722;</button>
-        </div>
-    `;
+    div.innerHTML = victimItemHTML(letter,
+        `<button type="button" class="remove-btn" onclick="removeVictim(this)" title="Remove patient/victim">&#8722;</button>`);
     document.getElementById("victims").appendChild(div);
     renumberVictims();
 }
@@ -132,33 +195,12 @@ function removeResponder(btn) {
     btn.closest(".responder-item").remove();
 }
 
-// Make checkbox pairs/groups behave like radio buttons while retaining checkbox appearance.
-document.querySelectorAll(".exclusive-group").forEach(group => {
-    group.addEventListener("change", e => {
-        if (e.target.type === "checkbox" && e.target.checked) {
-            group.querySelectorAll('input[type="checkbox"]').forEach(cb => {
-                if (cb !== e.target) cb.checked = false;
-            });
-            group.classList.remove("check-required-empty");
-        }
-    });
-});
-
 function validateForm() {
     let valid = true;
     document.querySelectorAll(".required").forEach(el => {
         el.classList.remove("required-empty");
         if (!String(el.value || "").trim()) {
             el.classList.add("required-empty");
-            valid = false;
-        }
-    });
-
-    document.querySelectorAll(".exclusive-group").forEach(group => {
-        const checked = group.querySelector('input[type="checkbox"]:checked');
-        group.classList.remove("check-required-empty");
-        if (!checked) {
-            group.classList.add("check-required-empty");
             valid = false;
         }
     });
@@ -180,17 +222,16 @@ function esc(value) {
     }[c]));
 }
 
-function checkedValue(name) {
-    const x = document.querySelector(`input[name="${name}"]:checked`);
-    return x ? x.value : "";
-}
-
 function buildReport() {
     const resources = getValues("resource[]");
     const patients = getValues("patient[]");
     const ages = getValues("age[]");
     const addresses = getValues("address[]");
     const injuries = getValues("injury[]");
+    const victimStatuses = getValues("victimStatus[]");
+    const initialImpressions = getValues("initialImpression[]");
+    const dispositions = getValues("disposition[]");
+    const vehicleTypes = getValues("vehicleType[]");
     const drivers = getValues("driver[]");
     const responders = getValues("responder[]");
 
@@ -201,6 +242,9 @@ function buildReport() {
             <td>${esc(ages[i])}</td>
             <td>${esc(addresses[i])}</td>
             <td>${esc(injuries[i])}</td>
+            <td>${esc(victimStatuses[i])}</td>
+            <td>${esc(initialImpressions[i])}</td>
+            <td>${esc(dispositions[i])}</td>
         </tr>`).join("");
 
     return `
@@ -222,12 +266,11 @@ function buildReport() {
                 <th>Municipality</th><td>${esc(document.querySelector('[name="municipality"]').value)}</td></tr>
             <tr><th>Patients / Victims</th><td colspan="3">
                 <table class="report-table">
-                    <tr><th>No.</th><th>Patient / Victim</th><th>Age</th><th>Address</th><th>Injuries Description</th></tr>
+                    <tr><th>No.</th><th>Patient / Victim</th><th>Age</th><th>Address</th><th>Injuries Description</th><th>Status of Victim</th><th>Initial Impression</th><th>Disposition</th></tr>
                     ${patientRows}
                 </table>
             </td></tr>
-            <tr><th>Is Anyone Involved under the influence of alchohol?</th><td>${esc(checkedValue("liquor"))}</td>
-                <th>Status</th><td>${esc(checkedValue("status"))}</td></tr>
+            <tr><th>Involved Vehicle Type</th><td colspan="3">${vehicleTypes.map(esc).join("<br>")}</td></tr>
             <tr><th>First Aid Provided</th><td colspan="3">${esc(document.querySelector('[name="firstAid"]').value)}</td></tr>
             <tr><th>Remarks</th><td colspan="3">${esc(document.querySelector('[name="remarks"]').value)}</td></tr>
             <tr><th>Driver(s)</th><td>${drivers.map(esc).join("<br>")}</td>
@@ -252,6 +295,9 @@ function buildReportData() {
     const ages = getValues("age[]");
     const addresses = getValues("address[]");
     const injuries = getValues("injury[]");
+    const victimStatuses = getValues("victimStatus[]");
+    const initialImpressions = getValues("initialImpression[]");
+    const dispositions = getValues("disposition[]");
 
     return {
         nature: val("nature"),
@@ -273,10 +319,12 @@ function buildReportData() {
             patient: p,
             age: ages[i],
             address: addresses[i],
-            injury: injuries[i]
+            injury: injuries[i],
+            victimStatus: victimStatuses[i],
+            initialImpression: initialImpressions[i],
+            disposition: dispositions[i]
         })),
-        liquor: checkedValue("liquor"),
-        status: checkedValue("status"),
+        vehicleType: getValues("vehicleType[]"),
         firstAid: val("firstAid"),
         remarks: val("remarks"),
         drivers: getValues("driver[]"),
@@ -336,18 +384,14 @@ function clearForm() {
         </div>`;
 
     document.getElementById("victims").innerHTML = `
-        <div class="victim-row victim-item" data-index="1">
-            <span class="patient-label">(A) Patient / Victim</span>
-            <input type="text" name="patient[]" class="required" required>
-            <span style="text-align:right;">Age:</span>
-            <input type="number" name="age[]" class="age required" min="0" required>
-            <span style="text-align:right;">Address:</span>
-            <input type="text" name="address[]" class="required" required>
-            <span class="inj-label">Injuries Description:</span>
-            <div style="display:flex;align-items:center;">
-                <input type="text" name="injury[]" class="required" required>
-                <button type="button" class="add-btn" onclick="addVictim()" title="Add patient/victim">+</button>
-            </div>
+        <div class="victim-item" data-index="1">
+            ${victimItemHTML("A", `<button type="button" class="add-btn" onclick="addVictim()" title="Add patient/victim">+</button>`)}
+        </div>`;
+
+    document.getElementById("vehicleTypes").innerHTML = `
+        <div class="vehicle-row">
+            <select name="vehicleType[]" class="required" required>${vehicleTypeOptions()}</select>
+            <button type="button" class="add-btn" onclick="addVehicleType()" title="Add vehicle type">+</button>
         </div>`;
 
     document.getElementById("drivers").innerHTML = `
