@@ -1,4 +1,5 @@
 const EMAIL_TO = "cdrrmotabaco2014@gmail.com";
+const SHEETS_WEB_APP_URL = "";
 
 function resourceOptions() {
     return `
@@ -255,58 +256,23 @@ function buildReportData() {
     };
 }
 
-function reportDateStamp() {
-    return document.querySelector('[name="callDate"]').value || "sitrep";
-}
+function saveToSheet() {
+    if (!SHEETS_WEB_APP_URL) {
+        alert("Google Sheets is not configured yet. Open js/main.js and paste your Apps Script Web App URL into SHEETS_WEB_APP_URL.");
+        return;
+    }
 
-function downloadFile(filename, content, type) {
-    const blob = new Blob([content], { type });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = filename;
-    document.body.appendChild(a);
-    a.click();
-    a.remove();
-    setTimeout(() => URL.revokeObjectURL(url), 1000);
-}
-
-function downloadJSON() {
-    downloadFile(
-        `sitrep-${reportDateStamp()}.json`,
-        JSON.stringify(buildReportData(), null, 2),
-        "application/json"
-    );
-}
-
-function csvCell(value) {
-    if (Array.isArray(value)) value = value.join(" | ");
-    value = String(value ?? "");
-    return /[",\n]/.test(value) ? '"' + value.replace(/"/g, '""') + '"' : value;
-}
-
-function downloadCSV() {
-    const d = buildReportData();
-    const headers = [
-        "Nature of Incident", "Assigned Team", "Shift-In-Charge (SIC)", "Operator in Charge",
-        "Dispatched Resources", "Incident Caller / Informant", "Contact No.", "Call Date", "Call Time",
-        "Dispatched Time", "Arrival at Scene", "Take Off from Scene", "Arrival at Hospital",
-        "Barangay", "Municipality",
-        "Patients (Name | Age | Address | Injuries)",
-        "Under the Influence of Alcohol?", "Status", "First Aid Provided", "Remarks",
-        "Driver(s)", "Responder(s)"
-    ];
-    const row = [
-        d.nature, d.assignedTeam, d.sic, d.operator,
-        d.resources, d.caller, d.contact, d.callDate, d.callTime,
-        d.dispatchedTime, d.arrivalTime, d.takeoffTime, d.hospitalTime,
-        d.barangay, d.municipality,
-        d.patients.map(p => `${p.patient} | ${p.age} | ${p.address} | ${p.injury}`).join(" ; "),
-        d.liquor, d.status, d.firstAid, d.remarks,
-        d.drivers, d.responders
-    ];
-    const csv = [headers, row].map(r => r.map(csvCell).join(",")).join("\r\n");
-    downloadFile(`sitrep-${reportDateStamp()}.csv`, "\ufeff" + csv, "text/csv;charset=utf-8");
+    fetch(SHEETS_WEB_APP_URL, {
+        method: "POST",
+        mode: "cors",
+        body: JSON.stringify(buildReportData())
+    })
+        .then(r => r.json())
+        .then(res => {
+            if (res.ok) alert("Report saved to Google Sheets.");
+            else alert("Save failed: " + (res.error || "unknown error"));
+        })
+        .catch(err => alert("Save failed: " + err));
 }
 
 function sendReport() {
