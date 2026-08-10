@@ -474,7 +474,8 @@
         }
 
         .right .row:has(input[type="time"]) .label {
-            margin: 0;
+            margin: 0 !important;
+            width: auto !important;
         }
 
         .right .row:has(input[type="time"]) .time-input {
