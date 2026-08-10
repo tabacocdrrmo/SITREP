@@ -1,5 +1,5 @@
-const EMAIL_TO = "cdrrmotabaco2014@gmail.com";
-const SHEETS_WEB_APP_URL = "";
+const EMAIL_TO = "cdrrmotabaco2014@gmail.com, gelmolatojunior@gmail.com";
+const SHEETS_WEB_APP_URL = "https://script.google.com/macros/s/AKfycbz0Ok5KPk-VpkvZtQta3tyjZRP7Sl13yhn3AJpEUezLoPemSt2jPqNqld7z7YMDrR2-/exec";
 
 function resourceOptions() {
     return `
@@ -304,16 +304,18 @@ function saveToSheet() {
 }
 
 function sendReport() {
-    // A pure HTML page cannot silently send email. This creates an email in
-    // the user's configured mail application addressed to the CDRRMO email.
+    // Opens Gmail's compose window (requires being signed in to Gmail in this
+    // browser) with the recipient, subject, and report body pre-filled.
     const text = document.getElementById("reportContent").innerText;
     const subject = "Tabaco CDRRMO Situation Report - " +
         document.querySelector('[name="callDate"]').value;
     const body = text;
-    window.location.href =
-        "mailto:" + EMAIL_TO +
-        "?subject=" + encodeURIComponent(subject) +
+    const gmailUrl =
+        "https://mail.google.com/mail/?view=cm&fs=1" +
+        "&to=" + encodeURIComponent(EMAIL_TO) +
+        "&su=" + encodeURIComponent(subject) +
         "&body=" + encodeURIComponent(body);
+    window.open(gmailUrl, "_blank");
 }
 
 function closeReport() {
