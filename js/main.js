@@ -69,17 +69,45 @@ function renumberVictims() {
 function driverOptions() {
     return `
         <option value="">-- Select Driver --</option>
-        <option>Jonel Beundia</option>
-        <option>Eugene Cao</option>
-        <option>Ariel Bolaños</option>`;
+        <option>Al C. Asis</option>
+        <option>Jomar B. Belo</option>
+        <option>Eugenio S. Cao Jr.</option>
+        <option>Warren B. Henson</option>
+        <option>Antonio B. Buison Jr.</option>
+        <option>Ariel C. Bolaños</option>
+        <option>Christopher Jeorge B. Lacerna</option>
+        <option>Reynaldo B. Belgica Jr.</option>
+        <option>Jaime II B. Benosa Jr.</option>
+        <option>Segundo B. Ballon Jr.</option>
+        <option>Jonel A. Buendia</option>
+        <option>Angelo B. Baraero</option>
+        <option>Marlon B. Belda</option>
+        <option>Jophen B. Bragais</option>
+        <option>Pablito M. Amortizado Jr.</option>
+        <option>Wynel B. De Mesa</option>`;
 }
 function responderOptions() {
     return `
         <option value="">-- Select Responder --</option>
-        <option>Shay Buenavidez</option>
-        <option>Joan Sayago</option>
-        <option>Ero Obrero</option>
-        <option>Janine Base</option>`;
+        <option>Wynel B. De Mesa</option>
+        <option>Jonel B. Bocalbos</option>
+        <option>Herman B. Bonaobra</option>
+        <option>Vicente B. Carale Jr.</option>
+        <option>Romulo P. Bolilan Jr.</option>
+        <option>Ero B. Obreros</option>
+        <option>Jaime V. Buensoceso</option>
+        <option>Adrian C. Callao</option>
+        <option>Noah M. Altavano</option>
+        <option>Ferdinand P. San Juan</option>
+        <option>Arnel C. Camata</option>
+        <option>Roberto S. Villegas</option>
+        <option>Levi Martin B. Madrid</option>
+        <option>Francis R. Tañang</option>
+        <option>Shay Marie Luz R. Benavides</option>
+        <option>Joan B. Sayago</option>
+        <option>Janine Eve Q. Base</option>
+        <option>Salvacion Amor B. Campit</option>
+        <option>Pedro G. Boringot, I</option>`;
 }
 function addDriver() {
     const div = document.createElement("div");
