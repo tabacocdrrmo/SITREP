@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Tabaco CDRRMO - Saved Situation Reports</title>
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+<div class="form-container">
+    <header class="mobile-header">
+        <div class="header-mark"><img src="CDRRMO Logo.png" alt="CDRRMO Logo"></div>
+        <div class="header-copy">
+            <div class="office-name">TABACO CITY</div>
+            <div class="office-title">Disaster Risk Reduction &amp; Management Office</div>
+            <div class="form-title">SIT REP - ARCHIVE</div>
+        </div>
+    </header>
+    <h1 class="desktop-title">Tabaco City Disaster Risk Reduction &amp; Management Office</h1>
+    <h2 class="desktop-title">Saved Situation Reports</h2>
+    <div class="view-saved-bar">
+        <button type="button" class="action action-primary" onclick="location.href='index.html'">Record New Sitrep</button>
+        <button type="button" class="icon-btn" onclick="viewSitreps()" title="Refresh" aria-label="Refresh">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M21 12a9 9 0 1 1-2.64-6.36"/>
+                <polyline points="21 3 21 9 15 9"/>
+            </svg>
+        </button>
+    </div>
+    <div class="report-box">
+        <div class="filter-bar">
+            <div class="filter-row">
+                <label class="filter-field filter-search">
+                    <span>Search</span>
+                    <input type="search" id="filterSearch" placeholder="SITREP #, nature, team, place, patient...">
+                </label>
+                <label class="filter-field">
+                    <span>Nature</span>
+                    <select id="filterNature"><option value="">All</option></select>
+                </label>
+                <label class="filter-field">
+                    <span>Team</span>
+                    <select id="filterTeam"><option value="">All</option></select>
+                </label>
+                <label class="filter-field">
+                    <span>Call Date From</span>
+                    <input type="date" id="filterDateFrom">
+                </label>
+                <label class="filter-field">
+                    <span>Call Date To</span>
+                    <input type="date" id="filterDateTo">
+                </label>
+                <button type="button" class="filter-clear" onclick="clearFilters()">Clear</button>
+            </div>
+        </div>
+        <div id="savedList">Loading...</div>
+    </div>
+</div>
+
+<div id="reportModal">
+    <div class="report-box">
+        <div class="report-header doc-header">
+            <img src="CDRRMO Logo.png" alt="CDRRMO Logo" class="doc-logo"
+                 onerror="this.style.display='none'">
+            <div class="doc-header-text">
+                <div class="gov-line">Republic of the Philippines</div>
+                <div class="gov-line">City Government of Tabaco City</div>
+                <div class="agency-name">CITY DISASTER RISK REDUCTION AND MANAGEMENT OFFICE</div>
+                <div class="doc-contact">0909 224 5858 | 0999 475 8582 | 0939 782 9833</div>
+            </div>
+        </div>
+        <h3 class="report-title">Situation Report</h3>
+        <div id="reportContent"></div>
+        <div class="report-actions">
+            <button type="button" onclick="downloadReportImage()">Download Image</button>
+            <button type="button" onclick="window.print()">Print</button>
+            <button type="button" onclick="closeReport()">Close</button>
+        </div>
+    </div>
+</div>
+
+<script src="js/html2canvas.min.js"></script>
+<script src="js/shared.js"></script>
+<script src="js/view.js"></script>
+</body>
+</html>

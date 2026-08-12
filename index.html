@@ -18,6 +18,9 @@
     </header>
     <h1 class="desktop-title">Tabaco City Disaster Risk Reduction &amp; Management Office</h1>
     <h2 class="desktop-title">Incident Log</h2>
+    <div class="view-saved-bar index-saved-bar">
+        <button type="button" class="action action-primary" onclick="location.href='view.html'">View Saved Sitreps</button>
+    </div>
 
     <form id="incidentForm" novalidate>
         <div class="top-grid">
@@ -125,10 +128,10 @@
             <span class="label">Place of Incident:</span>
             <div class="place-group">
                 <input type="text" name="barangay" class="required" required>
-                <div>Barangay</div>
+                <div>Place / Landmark</div>
             </div>
             <div class="place-group">
-                <input type="text" name="municipality" class="required" required>
+                <input type="text" name="municipality" value="Tabaco City" class="required" required>
                 <div>Municipality</div>
             </div>
         </div>
@@ -206,6 +209,14 @@
         <div class="remarks-row">
             <span class="label">Remarks:</span>
             <textarea name="remarks" class="required" required></textarea>
+        </div>
+
+        <div class="remarks-row">
+            <span class="label">Photos:</span>
+            <div class="photo-input-wrap">
+                <input type="file" id="photos" name="photos" accept="image/*" multiple>
+                <span class="photo-hint">Select up to 4 photos (JPG/PNG)</span>
+            </div>
         </div>
 
         <div class="team-section">
@@ -291,17 +302,19 @@
                 <div class="doc-contact">0909 224 5858 | 0999 475 8582 | 0939 782 9833</div>
             </div>
         </div>
-        <h3 class="report-title">Tabaco CDRRMO — Situation Report</h3>
+        <h3 class="report-title">Situation Report</h3>
         <div id="reportContent"></div>
         <div class="report-actions">
-            <button type="button" onclick="saveToSheet()">Save to Google Sheets</button>
-            <button type="button" onclick="sendReport()">Send to CDRRMO Email</button>
+            <button type="button" onclick="saveAndEmail()">Save &amp; Email</button>
+            <button type="button" onclick="downloadReportImage()">Download Image</button>
             <button type="button" onclick="window.print()">Print</button>
             <button type="button" onclick="closeReport()">Close</button>
         </div>
     </div>
 </div>
 
+<script src="js/shared.js"></script>
+<script src="js/html2canvas.min.js"></script>
 <script src="js/main.js"></script>
 </body>
 </html>

@@ -1,5 +1,64 @@
 const EMAIL_TO = "cdrrmotabaco2014@gmail.com, gelmolatojunior@gmail.com";
-const SHEETS_WEB_APP_URL = "https://script.google.com/macros/s/AKfycbwcEUHuhBh00drO_P-IcBvZIdEcA0lFEwdrp5TfI0ajPl2KYR24wlyWyDxAVEfDRAYo/exec";
+
+const TEAMS = {
+    Alpha: {
+        sic: ["Ramon D. Rodriguez"],
+        operator: ["Luis C. Borlagdan"],
+        drivers: ["Al C. Asis", "Jomar B. Belo", "Eugenio S. Cao Jr.", "Warren B. Henson", "Antonio B. Buison Jr."],
+        responders: [
+            "Wynel B. De Mesa", "Vicente B. Carale Jr.", "Jaime V. Buensoceso",
+            "Ferdinand P. San Juan", "Roberto S. Villegas", "Shay Marie Luz R. Benavides",
+            "Maria Carmela B. Bien", "Romyna B. Bongat", "Claire B. Bobier",
+            "Estiffunny S. Celestial", "Julius T. Bariso", "Joseph B. Riosa"
+        ]
+    },
+    Bravo: {
+        sic: ["Ambrocio V. Piolino"],
+        operator: ["Domingo C. Bron Jr."],
+        drivers: ["Ariel C. Bolaños", "Christopher Jeorge B. Lacerna", "Reynaldo B. Belgica Jr.", "Jaime II B. Benosa Jr.", "Segundo B. Ballon Jr."],
+        responders: [
+            "Jonel B. Bocalbos", "Romulo P. Bolilan Jr.", "Adrian C. Callao",
+            "Arnel C. Camata", "Levi Martin B. Madrid", "Joan B. Sayago",
+            "Maria Carmela B. Bien", "Romyna B. Bongat", "Claire B. Bobier",
+            "Estiffunny S. Celestial", "Julius T. Bariso", "Joseph B. Riosa"
+        ]
+    },
+    Charlie: {
+        sic: ["Romar B. Bombon"],
+        operator: ["Dennis R. Flores", "Imelda B. Castillo"],
+        drivers: ["Jonel A. Buendia", "Angelo B. Baraero", "Marlon B. Belda", "Jophen B. Bragais", "Pablito M. Amortizado Jr."],
+        responders: [
+            "Herman B. Bonaobra", "Ero B. Obreros", "Noah M. Altavano",
+            "Pedro G. Boringot, I", "Francis R. Tañang", "Janine Eve Q. Base",
+            "Salvacion Amor B. Campit",
+            "Maria Carmela B. Bien", "Romyna B. Bongat", "Claire B. Bobier",
+            "Estiffunny S. Celestial", "Julius T. Bariso", "Joseph B. Riosa"
+        ]
+    }
+};
+
+const ALL_ROSTER = {
+    sic: ["Ramon D. Rodriguez", "Ambrocio V. Piolino", "Romar B. Bombon"],
+    operator: ["Imelda B. Castillo", "Luis C. Borlagdan", "Domingo C. Bron Jr.", "Dennis R. Flores"],
+    drivers: [
+        "Al C. Asis", "Jomar B. Belo", "Eugenio S. Cao Jr.", "Warren B. Henson",
+        "Antonio B. Buison Jr.", "Ariel C. Bolaños", "Christopher Jeorge B. Lacerna",
+        "Reynaldo B. Belgica Jr.", "Jaime II B. Benosa Jr.", "Segundo B. Ballon Jr.",
+        "Jonel A. Buendia", "Angelo B. Baraero", "Marlon B. Belda", "Jophen B. Bragais",
+        "Pablito M. Amortizado Jr."
+    ],
+    responders: [
+        "Wynel B. De Mesa", "Jonel B. Bocalbos", "Herman B. Bonaobra",
+        "Vicente B. Carale Jr.", "Romulo P. Bolilan Jr.", "Ero B. Obreros",
+        "Jaime V. Buensoceso", "Adrian C. Callao", "Noah M. Altavano",
+        "Ferdinand P. San Juan", "Arnel C. Camata", "Roberto S. Villegas",
+        "Levi Martin B. Madrid", "Francis R. Tañang", "Shay Marie Luz R. Benavides",
+        "Joan B. Sayago", "Janine Eve Q. Base", "Salvacion Amor B. Campit",
+        "Pedro G. Boringot, I",
+        "Maria Carmela B. Bien", "Romyna B. Bongat", "Claire B. Bobier",
+        "Estiffunny S. Celestial", "Julius T. Bariso", "Joseph B. Riosa"
+    ]
+};
 
 function resourceOptions() {
     return `
@@ -18,12 +77,13 @@ function vehicleTypeOptions() {
     return `
         <option value="">-- Select --</option>
         <option>Single Motorcycle</option>
-        <option>Padyak (Motorcycle w/ Sidecar)</option>
         <option>Motor Tricycle</option>
         <option>Pedicab</option>
         <option>Bicycle</option>
-        <option>Car / Van / SUV</option>
+        <option>Car</option>
+        <option>Van / SUV</option>
         <option>Jeepney</option>
+        <option>Pickup Truck</option>
         <option>Truck</option>
         <option>Bus</option>
         <option>Others</option>
@@ -129,54 +189,56 @@ function renumberVictims() {
     });
 }
 
+function currentTeam() {
+    const el = document.getElementById("assignedTeam");
+    return (el && TEAMS[el.value]) ? el.value : "";
+}
+
+function optionTags(names) {
+    return names.map(n => `<option>${n}</option>`).join("");
+}
+
+function optionsFor(kind) {
+    const team = currentTeam();
+    return team ? TEAMS[team][kind] : ALL_ROSTER[kind];
+}
+
 function driverOptions() {
-    return `
-        <option value="">-- Select Driver --</option>
-        <option>Al C. Asis</option>
-        <option>Jomar B. Belo</option>
-        <option>Eugenio S. Cao Jr.</option>
-        <option>Warren B. Henson</option>
-        <option>Antonio B. Buison Jr.</option>
-        <option>Ariel C. Bolaños</option>
-        <option>Christopher Jeorge B. Lacerna</option>
-        <option>Reynaldo B. Belgica Jr.</option>
-        <option>Jaime II B. Benosa Jr.</option>
-        <option>Segundo B. Ballon Jr.</option>
-        <option>Jonel A. Buendia</option>
-        <option>Angelo B. Baraero</option>
-        <option>Marlon B. Belda</option>
-        <option>Jophen B. Bragais</option>
-        <option>Pablito M. Amortizado Jr.</option>
-        <option>Wynel B. De Mesa</option>`;
+    return optionTags(optionsFor("drivers"));
 }
 function responderOptions() {
-    return `
-        <option value="">-- Select Responder --</option>
-        <option>Wynel B. De Mesa</option>
-        <option>Jonel B. Bocalbos</option>
-        <option>Herman B. Bonaobra</option>
-        <option>Vicente B. Carale Jr.</option>
-        <option>Romulo P. Bolilan Jr.</option>
-        <option>Ero B. Obreros</option>
-        <option>Jaime V. Buensoceso</option>
-        <option>Adrian C. Callao</option>
-        <option>Noah M. Altavano</option>
-        <option>Ferdinand P. San Juan</option>
-        <option>Arnel C. Camata</option>
-        <option>Roberto S. Villegas</option>
-        <option>Levi Martin B. Madrid</option>
-        <option>Francis R. Tañang</option>
-        <option>Shay Marie Luz R. Benavides</option>
-        <option>Joan B. Sayago</option>
-        <option>Janine Eve Q. Base</option>
-        <option>Salvacion Amor B. Campit</option>
-        <option>Pedro G. Boringot, I</option>`;
+    return optionTags(optionsFor("responders"));
+}
+
+// Repopulate the SIC / Operator / Driver / Responder dropdowns for the current
+// team (all names when no team is selected).
+function refreshSelects(kind) {
+    const names = optionsFor(kind);
+    const selector = kind === "sic" ? "#sic" :
+        kind === "operator" ? "#operator" :
+        kind === "drivers" ? '#drivers select[name="driver[]"]' :
+        '#responders select[name="responder[]"]';
+    const placeholder = { sic: "-- Select SIC --", operator: "-- Select Operator --", drivers: "-- Select Driver --", responders: "-- Select Responder --" }[kind];
+    document.querySelectorAll(selector).forEach(sel => {
+        sel.innerHTML = `<option value="">${placeholder}</option>` + optionTags(names);
+        if (currentTeam() && (
+            (kind === "sic" && names.length === 1) ||
+            (kind === "operator" && names.length === 1)
+        )) sel.selectedIndex = 1;
+    });
+}
+
+function refreshAllSelects() {
+    refreshSelects("sic");
+    refreshSelects("operator");
+    refreshSelects("drivers");
+    refreshSelects("responders");
 }
 function addDriver() {
     const div = document.createElement("div");
     div.className = "team-item driver-item";
     div.innerHTML = `
-        <select name="driver[]" class="required" required>${driverOptions()}</select>
+        <select name="driver[]" class="required" required><option value="">-- Select Driver --</option>${driverOptions()}</select>
         <button type="button" class="remove-btn" onclick="removeDriver(this)" title="Remove driver">&#8722;</button>`;
     document.getElementById("drivers").appendChild(div);
 }
@@ -187,7 +249,7 @@ function addResponder() {
     const div = document.createElement("div");
     div.className = "team-item responder-item";
     div.innerHTML = `
-        <select name="responder[]" class="required" required>${responderOptions()}</select>
+        <select name="responder[]" class="required" required><option value="">-- Select Responder --</option>${responderOptions()}</select>
         <button type="button" class="remove-btn" onclick="removeResponder(this)" title="Remove responder">&#8722;</button>`;
     document.getElementById("responders").appendChild(div);
 }
@@ -216,12 +278,6 @@ function getValues(name) {
     return [...document.querySelectorAll(`[name="${name}"]`)].map(x => x.value);
 }
 
-function esc(value) {
-    return String(value ?? "").replace(/[&<>"']/g, c => ({
-        "&":"&amp;", "<":"&lt;", ">":"&gt;", '"':"&quot;", "'":"&#039;"
-    }[c]));
-}
-
 function buildReport() {
     const resources = getValues("resource[]");
     const patients = getValues("patient[]");
@@ -248,7 +304,7 @@ function buildReport() {
         </tr>`).join("");
 
     return `
-        <table class="report-table">
+        <table class="report-table report-table-main">
             <tr><th>Nature of Incident</th><td>${esc(document.getElementById("nature").value)}</td>
                 <th>Assigned Team</th><td>${esc(document.getElementById("assignedTeam").value)}</td></tr>
             <tr><th>Shift-In-Charge (SIC)</th><td>${esc(document.querySelector('[name="sic"]').value)}</td>
@@ -262,32 +318,98 @@ function buildReport() {
                 <th>Arrival at Scene</th><td>${esc(document.querySelector('[name="arrivalTime"]').value)}</td></tr>
             <tr><th>Take Off from Scene</th><td>${esc(document.querySelector('[name="takeoffTime"]').value)}</td>
                 <th>Arrival at Hospital</th><td>${esc(document.querySelector('[name="hospitalTime"]').value)}</td></tr>
-            <tr><th>Barangay</th><td>${esc(document.querySelector('[name="barangay"]').value)}</td>
+            <tr><th>Place / Landmark</th><td>${esc(document.querySelector('[name="barangay"]').value)}</td>
                 <th>Municipality</th><td>${esc(document.querySelector('[name="municipality"]').value)}</td></tr>
             <tr><th>Patients / Victims</th><td colspan="3">
-                <table class="report-table">
-                    <tr><th>No.</th><th>Patient / Victim</th><th>Age</th><th>Address</th><th>Injuries Description</th><th>Status of Victim</th><th>Initial Impression</th><th>Disposition</th></tr>
+                <div class="patients-wrap">
+                <table class="report-table patients-table">
+                    <tr><th style="width:6%">No.</th><th style="width:14%">Patient / Victim</th><th style="width:6%">Age</th><th style="width:16%">Address</th><th style="width:14%">Injuries Description</th><th style="width:11%">Status of Victim</th><th style="width:17%">Initial Impression</th><th style="width:16%">Disposition</th></tr>
                     ${patientRows}
                 </table>
+                </div>
             </td></tr>
             <tr><th>Involved Vehicle Type</th><td colspan="3">${vehicleTypes.map(esc).join("<br>")}</td></tr>
             <tr><th>First Aid Provided</th><td colspan="3">${esc(document.querySelector('[name="firstAid"]').value)}</td></tr>
             <tr><th>Remarks</th><td colspan="3">${esc(document.querySelector('[name="remarks"]').value)}</td></tr>
             <tr><th>Driver(s)</th><td>${drivers.map(esc).join("<br>")}</td>
                 <th>Responder(s)</th><td>${responders.map(esc).join("<br>")}</td></tr>
-        </table>`;
+        </table>
+        ${photosSection()}`;
+}
+
+// Thumbnails of the attached photos (shown below the form, above the actions).
+function photosSection() {
+    if (!selectedPhotos.length) return "";
+    return `
+        <h3 class="report-title attachments-title">Attachments</h3>
+        <div class="report-photos">
+            ${selectedPhotos.map((p, i) => `
+                <a href="data:${p.type};base64,${p.data}" target="_blank">
+                    <img src="data:${p.type};base64,${p.data}" alt="Photo ${i + 1}">
+                </a>`).join("")}
+        </div>`;
 }
 
 let reportHTML = "";
+let selectedPhotos = []; // { data: base64, type: mime, name }
+
+// Read and downscale the selected photos so the payload stays small.
+function loadSelectedPhotos() {
+    const input = document.getElementById("photos");
+    if (!input || !input.files || !input.files.length) {
+        selectedPhotos = [];
+        return Promise.resolve();
+    }
+
+    const files = [...input.files].slice(0, 4);
+    return Promise.all(files.map(file => {
+        return new Promise(resolve => {
+            const reader = new FileReader();
+            reader.onload = ev => {
+                const img = new Image();
+                img.onload = () => {
+                    const MAX = 800;
+                    let { width, height } = img;
+                    if (width > MAX || height > MAX) {
+                        const scale = Math.min(MAX / width, MAX / height);
+                        width = Math.round(width * scale);
+                        height = Math.round(height * scale);
+                    }
+                    const canvas = document.createElement("canvas");
+                    canvas.width = width;
+                    canvas.height = height;
+                    canvas.getContext("2d").drawImage(img, 0, 0, width, height);
+                    const mime = "image/jpeg";
+                    const name = file.name.replace(/\.[^.]+$/, "") + ".jpg";
+                    resolve({
+                        data: canvas.toDataURL(mime, 0.6).split(",")[1],
+                        type: mime,
+                        name: name
+                    });
+                };
+                img.onerror = () => resolve(null);
+                img.src = ev.target.result;
+            };
+            reader.onerror = () => resolve(null);
+            reader.readAsDataURL(file);
+        });
+    })).then(photos => {
+        selectedPhotos = photos.filter(Boolean);
+    });
+}
 
 document.getElementById("incidentForm").addEventListener("submit", function(e) {
     e.preventDefault();
     if (!validateForm()) return;
 
-    reportHTML = buildReport();
-    document.getElementById("reportContent").innerHTML = reportHTML;
-    document.getElementById("reportModal").style.display = "block";
+    loadSelectedPhotos().then(() => {
+        reportHTML = buildReport();
+        document.getElementById("reportContent").innerHTML = reportHTML;
+        document.getElementById("reportModal").style.display = "block";
+    });
 });
+
+document.getElementById("assignedTeam").addEventListener("change", refreshAllSelects);
 
 function buildReportData() {
     const val = name => document.querySelector(`[name="${name}"]`).value;
@@ -328,27 +450,41 @@ function buildReportData() {
         firstAid: val("firstAid"),
         remarks: val("remarks"),
         drivers: getValues("driver[]"),
-        responders: getValues("responder[]")
+        responders: getValues("responder[]"),
+        photos: selectedPhotos
     };
 }
 
 function saveToSheet() {
     if (!SHEETS_WEB_APP_URL) {
-        alert("Google Sheets is not configured yet. Open js/main.js and paste your Apps Script Web App URL into SHEETS_WEB_APP_URL.");
-        return;
+        alert("Google Sheets is not configured yet. Open js/shared.js and paste your Apps Script Web App URL into SHEETS_WEB_APP_URL.");
+        return Promise.resolve(false);
     }
 
-    fetch(SHEETS_WEB_APP_URL, {
+    return fetch(SHEETS_WEB_APP_URL, {
         method: "POST",
         mode: "cors",
         body: JSON.stringify(buildReportData())
     })
         .then(r => r.json())
         .then(res => {
-            if (res.ok) alert("Report saved to Google Sheets.");
-            else alert("Save failed: " + (res.error || "unknown error"));
+            if (res.ok) {
+                alert("Report saved to Google Sheets.");
+                return true;
+            }
+            alert("Save failed: " + (res.error || "unknown error"));
+            return false;
         })
-        .catch(err => alert("Save failed: " + err));
+        .catch(err => {
+            alert("Save failed: " + err);
+            return false;
+        });
+}
+
+function saveAndEmail() {
+    saveToSheet().then(ok => {
+        if (ok) sendReport();
+    });
 }
 
 function sendReport() {
@@ -368,6 +504,50 @@ function sendReport() {
 
 function closeReport() {
     document.getElementById("reportModal").style.display = "none";
+}
+
+function downloadReportImage() {
+    const box = document.getElementById("reportModal").querySelector(".report-box");
+    if (!box) return;
+
+    const hidden = document.createElement("div");
+    hidden.className = "dl-capture-wrap";
+
+    const clone = box.cloneNode(true);
+    const actions = clone.querySelector(".report-actions");
+    if (actions) actions.remove();
+
+    hidden.appendChild(clone);
+    document.body.appendChild(hidden);
+
+    const images = [...clone.querySelectorAll("img")];
+    const ready = images.map(img => {
+        return new Promise(resolve => {
+            if (img.complete && img.naturalWidth) return resolve();
+            img.addEventListener("load", () => resolve(), { once: true });
+            img.addEventListener("error", () => resolve(), { once: true });
+        });
+    });
+
+    Promise.all(ready).then(() => {
+        return html2canvas(hidden, {
+            backgroundColor: "#ffffff",
+            scale: 3,
+            useCORS: true,
+            logging: false,
+            windowWidth: hidden.scrollWidth,
+            windowHeight: hidden.scrollHeight
+        });
+    }).then(canvas => {
+        const link = document.createElement("a");
+        link.download = "sitrep.png";
+        link.href = canvas.toDataURL("image/png");
+        link.click();
+    }).catch(err => {
+        alert("Download Image failed: " + err);
+    }).finally(() => {
+        hidden.remove();
+    });
 }
 
 function clearForm() {
@@ -396,15 +576,21 @@ function clearForm() {
 
     document.getElementById("drivers").innerHTML = `
         <div class="team-item driver-item">
-            <select name="driver[]" class="required" required>${driverOptions()}</select>
+            <select name="driver[]" class="required" required><option value="">-- Select Driver --</option>${driverOptions()}</select>
             <button type="button" class="add-btn" onclick="addDriver()" title="Add driver">+</button>
         </div>`;
 
     document.getElementById("responders").innerHTML = `
         <div class="team-item responder-item">
-            <select name="responder[]" class="required" required>${responderOptions()}</select>
+            <select name="responder[]" class="required" required><option value="">-- Select Responder --</option>${responderOptions()}</select>
             <button type="button" class="add-btn" onclick="addResponder()" title="Add responder">+</button>
         </div>`;
+
+    refreshAllSelects();
+
+    const photosInput = document.getElementById("photos");
+    if (photosInput) photosInput.value = "";
+    selectedPhotos = [];
 
     document.querySelectorAll(".required-empty").forEach(el => el.classList.remove("required-empty"));
     document.querySelectorAll(".check-required-empty").forEach(el => el.classList.remove("check-required-empty"));
