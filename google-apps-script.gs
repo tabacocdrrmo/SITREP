@@ -11,9 +11,21 @@ const MAIN_HEADERS = [
 const LOG_SHEET_NAME = "Responder Log";
 const LOG_HEADERS = ["SITREP #", "Recorded At", "Call Date", "Nature of Incident", "Name", "Role"];
 
+const SUBMISSION_IDS_KEY = "SITREP_SUBMISSION_IDS";
+const SUBMISSION_ID_LIMIT = 50;
+
 function doPost(e) {
+  let submissionId = "";
   try {
     const data = JSON.parse(e.postData.contents);
+    submissionId = data.submissionId || "";
+
+    // Return early for a repeat of an already-processed submission (e.g. a
+    // lost-response retry) so the record is never saved twice.
+    if (recentlySubmitted(submissionId)) {
+      return jsonOut({ ok: true, duplicate: true });
+    }
+
     const sheet = SpreadsheetApp.getActiveSpreadsheet().getActiveSheet();
 
     ensureMainHeader(sheet);
@@ -49,6 +61,7 @@ function doPost(e) {
 
     return jsonOut({ ok: true });
   } catch (err) {
+    if (submissionId) forgetSubmission(submissionId);
     return jsonOut({ ok: false, error: String(err) });
   }
 }
@@ -65,18 +78,104 @@ function ensureMainHeader(sheet) {
 }
 
 // Returns the next sequential number for the current year, e.g. "2026-001".
+// The counter is cached in script properties (guarded by a lock) so the sheet
+// only needs to be scanned once per year instead of on every upload.
 function nextSitrepNo(sheet) {
   const year = new Date().getFullYear();
-  let max = 0;
-  const lastRow = sheet.getLastRow();
-  if (lastRow > 1) {
-    const values = sheet.getRange(2, 1, lastRow - 1, 1).getValues();
-    for (const row of values) {
-      const m = /^(\d{4})-(\d+)$/.exec(String(row[0] || ""));
-      if (m && Number(m[1]) === year) max = Math.max(max, Number(m[2]));
+  const props = PropertiesService.getScriptProperties();
+  const key = "SITREP_COUNT_" + year;
+  const lock = LockService.getScriptLock();
+
+  let locked = false;
+  try { locked = lock.tryLock(10000); } catch (e) { locked = false; }
+
+  let last;
+  if (locked) {
+    try {
+      last = Number(props.getProperty(key) || 0);
+      if (!last) last = maxSitrepNoInSheet(sheet, year);
+      last += 1;
+      props.setProperty(key, String(last));
+    } finally {
+      lock.releaseLock();
     }
+  } else {
+    last = maxSitrepNoInSheet(sheet, year) + 1;
   }
-  return year + "-" + String(max + 1).padStart(3, "0");
+
+  return year + "-" + String(last).padStart(3, "0");
+}
+
+// Scans the SITREP # column for the highest number in the given year.
+function maxSitrepNoInSheet(sheet, year) {
+  const lastRow = sheet.getLastRow();
+  if (lastRow < 2) return 0;
+  const values = sheet.getRange(2, 1, lastRow - 1, 1).getValues();
+  let max = 0;
+  for (const row of values) {
+    const m = /^(\d{4})-(\d+)$/.exec(String(row[0] || ""));
+    if (m && Number(m[1]) === year) max = Math.max(max, Number(m[2]));
+  }
+  return max;
+}
+
+// Records a submission id and returns true if it was already seen (i.e. this
+// submission was processed before). A capped list of recent ids is kept in
+// script properties so repeat saves are blocked without storing anything in the
+// sheet itself.
+function recentlySubmitted(id) {
+  if (!id) return false;
+  const lock = LockService.getScriptLock();
+  let locked = false;
+  try { locked = lock.tryLock(10000); } catch (e) { locked = false; }
+  if (!locked) return false;
+
+  try {
+    const props = PropertiesService.getScriptProperties();
+    let ids = readSubmissionIds(props);
+    if (ids.indexOf(id) !== -1) return true;
+    ids.push(id);
+    if (ids.length > SUBMISSION_ID_LIMIT) {
+      ids = ids.slice(ids.length - SUBMISSION_ID_LIMIT);
+    }
+    props.setProperty(SUBMISSION_IDS_KEY, JSON.stringify(ids));
+    return false;
+  } finally {
+    lock.releaseLock();
+  }
+}
+
+// Removes a submission id so a failed save can be retried instead of being
+// treated as a duplicate.
+function forgetSubmission(id) {
+  if (!id) return;
+  const lock = LockService.getScriptLock();
+  let locked = false;
+  try { locked = lock.tryLock(10000); } catch (e) { locked = false; }
+  if (!locked) return;
+
+  try {
+    const props = PropertiesService.getScriptProperties();
+    const ids = readSubmissionIds(props);
+    const i = ids.indexOf(id);
+    if (i !== -1) {
+      ids.splice(i, 1);
+      props.setProperty(SUBMISSION_IDS_KEY, JSON.stringify(ids));
+    }
+  } finally {
+    lock.releaseLock();
+  }
+}
+
+function readSubmissionIds(props) {
+  const raw = props.getProperty(SUBMISSION_IDS_KEY);
+  if (!raw) return [];
+  try {
+    const ids = JSON.parse(raw);
+    return Array.isArray(ids) ? ids : [];
+  } catch (e) {
+    return [];
+  }
 }
 
 // Appends one row per driver and per responder to the Responder Log sheet so
@@ -208,18 +307,14 @@ function servePhoto(id) {
 }
 
 // Saves base64 images into a "SITREP Photos" folder in Drive and returns
-// viewable links. Anyone with the link can view the photo. Files are named
-// "MM-DD_SITREP#_N.jpg" (e.g. 08-11_2026-001_1.jpg).
+// viewable links. Files are stored under a sub-folder named after the upload
+// date ("MM-DD-YYYY") and named "MM-DD_SITREP#_N.jpg"
+// (e.g. 08-11_2026-001_1.jpg). Files are private; the front-end serves them
+// through the ?action=photo endpoint so they don't need to be publicly shared.
 function savePhotos(photos, sitrepNo, callDate) {
   if (!photos || !photos.length) return [];
 
-  let folder;
-  const folders = DriveApp.getFoldersByName("SITREP Photos");
-  if (folders.hasNext()) {
-    folder = folders.next();
-  } else {
-    folder = DriveApp.createFolder("SITREP Photos");
-  }
+  const folder = getPhotosFolder();
 
   const mmdd = (callDate || "").slice(5) || "";
 
@@ -234,7 +329,6 @@ function savePhotos(photos, sitrepNo, callDate) {
         name
       );
       const file = folder.createFile(blob);
-      file.setSharing(DriveApp.Access.ANYONE_WITH_LINK, DriveApp.Permission.VIEW);
       return file.getUrl();
     } catch (err) {
       return "";
@@ -242,4 +336,54 @@ function savePhotos(photos, sitrepNo, callDate) {
   });
 
   return links;
+}
+
+// Resolves the "SITREP Photos" folder plus the "MM-DD-YYYY" sub-folder for the
+// current upload date. Both ids are cached in script properties so the root
+// lookup and each day's sub-folder are only created/found once.
+function getPhotosFolder() {
+  const props = PropertiesService.getScriptProperties();
+
+  let root;
+  const rootId = props.getProperty("SITREP_PHOTO_FOLDER_ID");
+  if (rootId) {
+    try { root = DriveApp.getFolderById(rootId); } catch (e) { /* look up again */ }
+  }
+  if (!root) {
+    const folders = DriveApp.getFoldersByName("SITREP Photos");
+    root = folders.hasNext() ? folders.next() : DriveApp.createFolder("SITREP Photos");
+    props.setProperty("SITREP_PHOTO_FOLDER_ID", root.getId());
+  }
+
+  ensurePhotoFolderShared(root, props);
+
+  const now = new Date();
+  const pad = n => String(n).padStart(2, "0");
+  const dateKey = pad(now.getMonth() + 1) + "-" + pad(now.getDate()) + "-" + now.getFullYear();
+
+  const subKey = "SITREP_PHOTO_SUBFOLDER_" + dateKey;
+  const subId = props.getProperty(subKey);
+  if (subId) {
+    try { return DriveApp.getFolderById(subId); } catch (e) { /* create again */ }
+  }
+
+  const subs = root.getFoldersByName(dateKey);
+  const sub = subs.hasNext() ? subs.next() : root.createFolder(dateKey);
+  props.setProperty(subKey, sub.getId());
+  return sub;
+}
+
+// Shares the root "SITREP Photos" folder with "Anyone with the link can view",
+// so every photo (current and future) is viewable/downloadable via its link.
+// This runs one time instead of once per photo. A failure to share never
+// blocks a save; the app still serves photos through the ?action=photo endpoint.
+function ensurePhotoFolderShared(folder, props) {
+  if (!folder) return;
+  if (props.getProperty("SITREP_PHOTO_FOLDER_SHARED")) return;
+  try {
+    folder.setSharing(DriveApp.Access.ANYONE_WITH_LINK, DriveApp.Permission.VIEW);
+    props.setProperty("SITREP_PHOTO_FOLDER_SHARED", "true");
+  } catch (err) {
+    console.warn("Photo folder sharing failed: " + String(err));
+  }
 }

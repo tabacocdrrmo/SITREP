@@ -73,7 +73,8 @@
                         <select name="resource[]" class="resource-input required" required>
                             <option value="">-- Select Resource --</option>
                             <option>EMS</option>
-                            <option>884 STARIA</option>
+                            <option>884</option>
+                            <option>STARIA</option>
                             <option>FIRETRUCK</option>
                             <option>028</option>
                             <option>167</option>
@@ -168,7 +169,7 @@
                     <span>Disposition of Victim:</span>
                     <select name="disposition[]" class="required" required>
                         <option value="">-- Select --</option>
-                        <option>In-Patient</option>
+                        <option>Hospitalized</option>
                         <option>Demised</option>
                         <option>Declined Hospitalization</option>
                         <option>N/A</option>
@@ -185,12 +186,13 @@
                     <select name="vehicleType[]" class="required" required>
                         <option value="">-- Select --</option>
                         <option>Single Motorcycle</option>
-                        <option>Padyak (Motorcycle w/ Sidecar)</option>
                         <option>Motor Tricycle</option>
                         <option>Pedicab</option>
                         <option>Bicycle</option>
-                        <option>Car / Van / SUV</option>
+                        <option>Car</option>
+                        <option>Van / SUV</option>
                         <option>Jeepney</option>
+                        <option>Pickup Truck</option>
                         <option>Truck</option>
                         <option>Bus</option>
                         <option>Others</option>
@@ -305,10 +307,16 @@
         <h3 class="report-title">Situation Report</h3>
         <div id="reportContent"></div>
         <div class="report-actions">
-            <button type="button" onclick="saveAndEmail()">Save &amp; Email</button>
+            <button type="button" id="saveBtn" onclick="saveAndEmail()">Save &amp; Email</button>
             <button type="button" onclick="downloadReportImage()">Download Image</button>
             <button type="button" onclick="window.print()">Print</button>
             <button type="button" onclick="closeReport()">Close</button>
+        </div>
+        <div id="savingOverlay" hidden>
+            <div class="saving-dialog">
+                <div class="spinner" aria-hidden="true"></div>
+                <div class="saving-label">Saving record&hellip;</div>
+            </div>
         </div>
     </div>
 </div>

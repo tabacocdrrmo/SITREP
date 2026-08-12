@@ -376,6 +376,16 @@
         cursor: pointer;
     }
     .filter-bar button.filter-clear:hover { background: #c9302c; }
+    .filter-bar button.sort-toggle {
+        background: #fff;
+        color: #176b9d;
+        border: 1px solid #176b9d;
+        border-radius: 4px;
+        padding: 6px 12px;
+        cursor: pointer;
+        font-size: 13px;
+    }
+    .filter-bar button.sort-toggle:hover { background: #eaf2f8; }
     .pagination {
         display: flex;
         align-items: center;
@@ -400,6 +410,7 @@
         color: #33424d;
     }
     .report-box {
+        position: relative;
         background: #fff;
         width: 1050px;
         max-width: 100%;
@@ -520,6 +531,52 @@
         padding: 9px 20px;
         margin: 0 5px;
         cursor: pointer;
+    }
+
+    /* ---------- Saving indicator ---------- */
+    #savingOverlay {
+        position: absolute;
+        inset: 0;
+        z-index: 5;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: rgba(255,255,255,.82);
+        border-radius: inherit;
+    }
+    #savingOverlay[hidden] { display: none; }
+    .saving-dialog {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        padding: 16px 22px;
+        background: #fff;
+        border: 1px solid #cdd7de;
+        border-radius: 10px;
+        box-shadow: 0 6px 20px rgba(27,49,66,.18);
+    }
+    .spinner {
+        width: 26px;
+        height: 26px;
+        flex: 0 0 26px;
+        border: 3px solid #d3dce2;
+        border-top-color: #176b9d;
+        border-radius: 50%;
+        animation: spin .8s linear infinite;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .saving-label {
+        font-size: 14px;
+        font-weight: 700;
+        color: #18232d;
+    }
+    .report-actions button:disabled,
+    #saveBtn:disabled {
+        opacity: .6;
+        cursor: default;
+    }
+    .dl-capture-wrap #savingOverlay {
+        display: none;
     }
 
     @media (max-width: 900px) {
@@ -1807,7 +1864,8 @@
     .form-container,
     .report-actions,
     .add-btn,
-    .remove-btn {
+    .remove-btn,
+    #savingOverlay {
         display: none !important;
     }
 

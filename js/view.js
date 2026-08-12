@@ -3,6 +3,7 @@ let filteredRows = [];
 let currentPage = 1;
 let currentSitrepNo = "";
 const PAGE_SIZE = 10;
+let sortOrder = "desc";
 
 function viewSitreps() {
     const list = document.getElementById("savedList");
@@ -30,6 +31,7 @@ function viewSitreps() {
 
 function renderSavedList(rows) {
     savedRows = rows || [];
+    sortSitreps();
     const box = document.getElementById("savedList");
     if (!savedRows.length) {
         box.innerHTML = "<p>No saved sitreps found yet.</p>";
@@ -49,6 +51,32 @@ function fillOptions(id, values) {
 
 function uniqueSorted(arr) {
     return [...new Set(arr.map(String).filter(Boolean).sort())];
+}
+
+// Sorts savedRows by SITREP #. The current order is newest-first by default.
+function sitrepSortValue(r) {
+    const m = /^(\d{4})-(\d+)$/.exec(String(r["SITREP #"] || ""));
+    return m ? Number(m[1]) * 100000 + Number(m[2]) : 0;
+}
+
+function sortSitreps() {
+    savedRows.sort((a, b) => {
+        const av = sitrepSortValue(a);
+        const bv = sitrepSortValue(b);
+        return sortOrder === "desc" ? bv - av : av - bv;
+    });
+}
+
+function toggleSort() {
+    sortOrder = sortOrder === "desc" ? "asc" : "desc";
+    sortSitreps();
+    updateSortBtn();
+    applyFilters();
+}
+
+function updateSortBtn() {
+    const btn = document.getElementById("sortBtn");
+    if (btn) btn.textContent = sortOrder === "desc" ? "Sort: Newest" : "Sort: Oldest";
 }
 
 function applyFilters() {
@@ -141,6 +169,7 @@ function showSavedReport(i) {
     if (!row) return;
     currentSitrepNo = row["SITREP #"] || "";
     document.getElementById("reportContent").innerHTML = renderReportFromSheet(row);
+    loadSavedPhotos(document.getElementById("reportContent"));
     document.getElementById("reportModal").style.display = "block";
 }
 
@@ -267,11 +296,6 @@ function splitJoined(s) {
     return String(s ?? "").split(/;\s*|,\s*|\n/).map(x => x.trim()).filter(Boolean);
 }
 
-function driveThumb(url) {
-    const m = /\/d\/([^/]+)/.exec(url || "");
-    return m ? "https://drive.google.com/thumbnail?id=" + m[1] + "&sz=w600" : url;
-}
-
 function savedPhotosSection(links) {
     const urls = String(links ?? "").split("\n").map(s => s.trim()).filter(Boolean);
     if (!urls.length) return "";
@@ -280,9 +304,23 @@ function savedPhotosSection(links) {
         <div class="report-photos">
             ${urls.map((u, i) => `
                 <a href="${esc(u)}" target="_blank">
-                    <img src="${esc(driveThumb(u))}" alt="Photo ${i + 1}">
+                    <img class="saved-photo" data-photo="${esc(u)}" alt="Photo ${i + 1}">
                 </a>`).join("")}
         </div>`;
+}
+
+// Resolves each saved photo through the private serving endpoint and sets the
+// image src (and its link) once the data URL is ready.
+function loadSavedPhotos(scope) {
+    if (!scope) return;
+    scope.querySelectorAll(".report-photos img.saved-photo").forEach(img => {
+        photoDataUrl(img.dataset.photo).then(dataUrl => {
+            if (!dataUrl) return;
+            img.src = dataUrl;
+            const link = img.closest("a");
+            if (link) link.href = dataUrl;
+        });
+    });
 }
 
 function renderReportFromSheet(row) {

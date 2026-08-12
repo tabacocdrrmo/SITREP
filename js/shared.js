@@ -1,4 +1,4 @@
-const SHEETS_WEB_APP_URL = "https://script.google.com/macros/s/AKfycbxdqINB7ihQHev_2sRXlO6iH0P4QouoCFm4KhoAwQ69iBVgbY9HybkXFV1BCffA5uSI/exec";
+const SHEETS_WEB_APP_URL = "https://script.google.com/macros/s/AKfycbzt64mWdtdcuAbaTSZu8_SYJciCrLJtEbxHHsY_5ImE4WJnM3b5d1ZnOOeWhrSHnsdm/exec";
 
 function esc(value) {
     return String(value ?? "").replace(/[&<>"']/g, c => ({

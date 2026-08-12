@@ -64,7 +64,8 @@ function resourceOptions() {
     return `
         <option value="">-- Select Resource --</option>
         <option>EMS</option>
-        <option>884 STARIA</option>
+        <option>884</option>
+        <option>STARIA</option>
         <option>FIRETRUCK</option>
         <option>028</option>
         <option>167</option>
@@ -134,7 +135,7 @@ function victimStatusOptions() {
 function dispositionOptions() {
     return `
         <option value="">-- Select --</option>
-        <option>In-Patient</option>
+        <option>Hospitalized</option>
         <option>Demised</option>
         <option>Declined Hospitalization</option>
         <option>N/A</option>`;
@@ -352,6 +353,36 @@ function photosSection() {
 
 let reportHTML = "";
 let selectedPhotos = []; // { data: base64, type: mime, name }
+let submissionId = ""; // unique id per report; prevents duplicate saves
+let saving = false;
+let reportSaved = false;
+
+// Generates a unique id for one submission attempt. Kept per report so a
+// retry of the same save cannot write a second row.
+function newSubmissionId() {
+    if (window.crypto && crypto.randomUUID) return crypto.randomUUID();
+    return "sitrep_" + Date.now().toString(36) + "_" + Math.random().toString(36).slice(2, 10);
+}
+
+// Toggles the saving overlay + button state. The button is disabled and labeled
+// "Saving…" mid-save, stays disabled as "Saved" after a success, and returns to
+// normal after a failure.
+function setSavingUI(isSaving) {
+    const overlay = document.getElementById("savingOverlay");
+    if (overlay) overlay.hidden = !isSaving;
+    const btn = document.getElementById("saveBtn");
+    if (!btn) return;
+    if (isSaving) {
+        btn.disabled = true;
+        btn.textContent = "Saving\u2026";
+    } else if (reportSaved) {
+        btn.disabled = true;
+        btn.textContent = "Saved";
+    } else {
+        btn.disabled = false;
+        btn.textContent = "Save & Email";
+    }
+}
 
 // Read and downscale the selected photos so the payload stays small.
 function loadSelectedPhotos() {
@@ -368,7 +399,7 @@ function loadSelectedPhotos() {
             reader.onload = ev => {
                 const img = new Image();
                 img.onload = () => {
-                    const MAX = 800;
+                    const MAX = 640;
                     let { width, height } = img;
                     if (width > MAX || height > MAX) {
                         const scale = Math.min(MAX / width, MAX / height);
@@ -382,7 +413,7 @@ function loadSelectedPhotos() {
                     const mime = "image/jpeg";
                     const name = file.name.replace(/\.[^.]+$/, "") + ".jpg";
                     resolve({
-                        data: canvas.toDataURL(mime, 0.6).split(",")[1],
+                        data: canvas.toDataURL(mime, 0.5).split(",")[1],
                         type: mime,
                         name: name
                     });
@@ -401,6 +432,7 @@ function loadSelectedPhotos() {
 document.getElementById("incidentForm").addEventListener("submit", function(e) {
     e.preventDefault();
     if (!validateForm()) return;
+    if (!submissionId) submissionId = newSubmissionId();
 
     loadSelectedPhotos().then(() => {
         reportHTML = buildReport();
@@ -451,37 +483,96 @@ function buildReportData() {
         remarks: val("remarks"),
         drivers: getValues("driver[]"),
         responders: getValues("responder[]"),
-        photos: selectedPhotos
+        photos: selectedPhotos,
+        submissionId: submissionId
     };
 }
 
+const MAX_SAVE_ATTEMPTS = 3;
+const SAVE_TIMEOUT_MS = 90000;
+
+// Sends one POST and classifies the result. Resolves to one of:
+//   { type: "ok", res }         valid JSON from the server
+//   { type: "server", error }   valid JSON reporting a server-side failure
+//   { type: "transient", detail } HTML page / network error / timeout
+function attemptSave() {
+    const controller = new AbortController();
+    const timer = setTimeout(() => controller.abort(), SAVE_TIMEOUT_MS);
+
+    return fetch(SHEETS_WEB_APP_URL, {
+        method: "POST",
+        mode: "cors",
+        signal: controller.signal,
+        body: JSON.stringify(buildReportData())
+    })
+        .then(r => r.text())
+        .then(text => {
+            let res;
+            try {
+                res = JSON.parse(text);
+            } catch (e) {
+                throw { transientError: "Server returned a non-JSON response: " + String(text || "").slice(0, 40) };
+            }
+            if (!res || res.ok !== true) {
+                return { type: "server", error: (res && res.error) || "unknown server error" };
+            }
+            return { type: "ok", res: res };
+        })
+        .catch(err => {
+            if (err && err.transientError) return { type: "transient", detail: err.transientError };
+            if (err && err.name === "AbortError") return { type: "transient", detail: "timed out" };
+            return { type: "transient", detail: String(err) };
+        })
+        .finally(() => clearTimeout(timer));
+}
+
 function saveToSheet() {
+    if (reportSaved || saving) return Promise.resolve(reportSaved);
     if (!SHEETS_WEB_APP_URL) {
         alert("Google Sheets is not configured yet. Open js/shared.js and paste your Apps Script Web App URL into SHEETS_WEB_APP_URL.");
         return Promise.resolve(false);
     }
 
-    return fetch(SHEETS_WEB_APP_URL, {
-        method: "POST",
-        mode: "cors",
-        body: JSON.stringify(buildReportData())
-    })
-        .then(r => r.json())
-        .then(res => {
-            if (res.ok) {
-                alert("Report saved to Google Sheets.");
-                return true;
-            }
-            alert("Save failed: " + (res.error || "unknown error"));
-            return false;
-        })
-        .catch(err => {
-            alert("Save failed: " + err);
-            return false;
-        });
+    saving = true;
+    setSavingUI(true);
+
+    return new Promise(resolve => {
+        const retry = attempt => {
+            attemptSave().then(result => {
+                if (result.type === "ok") {
+                    reportSaved = true;
+                    saving = false;
+                    setSavingUI(false);
+                    alert(result.res.duplicate ? "This report was already saved." : "Report saved to Google Sheets.");
+                    resolve(true);
+                    return;
+                }
+                if (result.type === "server") {
+                    saving = false;
+                    setSavingUI(false);
+                    alert("Save failed: " + result.error);
+                    resolve(false);
+                    return;
+                }
+                // Transient failure (HTML / network / timeout). The submission id
+                // makes retries safe: the server either returns duplicate (already
+                // saved) or processes the record exactly once.
+                if (attempt < MAX_SAVE_ATTEMPTS - 1) {
+                    setTimeout(() => retry(attempt + 1), 1200 * Math.pow(2, attempt));
+                } else {
+                    saving = false;
+                    setSavingUI(false);
+                    alert("Could not confirm the save - please check the sheet. Re-saving this report cannot create a duplicate.");
+                    resolve(false);
+                }
+            });
+        };
+        retry(0);
+    });
 }
 
 function saveAndEmail() {
+    if (saving || reportSaved) return;
     saveToSheet().then(ok => {
         if (ok) sendReport();
     });
@@ -594,4 +685,9 @@ function clearForm() {
 
     document.querySelectorAll(".required-empty").forEach(el => el.classList.remove("required-empty"));
     document.querySelectorAll(".check-required-empty").forEach(el => el.classList.remove("check-required-empty"));
+
+    submissionId = "";
+    saving = false;
+    reportSaved = false;
+    setSavingUI(false);
 }
