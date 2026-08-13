@@ -94,14 +94,15 @@
     }
     .victim-row {
         display: grid;
-        grid-template-columns: 92px 225px 58px 44px 55px 215px;
+        grid-template-columns: 92px 225px 58px 44px 55px 215px 150px 170px;
         align-items: center;
         gap: 4px;
         margin-bottom: 6px;
     }
-    .victim-row input { width: 100%; }
+    .victim-row input, .victim-row select { width: 100%; }
     .victim-row .age { width: 60px; }
     .victim-row .patient-label { text-align: right; }
+    .victim-row .pcr-label { text-align: right; }
     .victim-status-row {
         display: grid;
         grid-template-columns: 150px 160px 150px 160px 150px 160px 150px 160px 30px;
@@ -849,7 +850,8 @@
             font-weight: 700;
         }
 
-        .victim-row input {
+        .victim-row input, .victim-row select {
+            width: 100% !important;
             margin-bottom: 9px;
         }
 
@@ -1498,7 +1500,7 @@
 
     .victim-row {
         display: grid;
-        grid-template-columns: 150px minmax(0, 1fr) 42px 80px 58px minmax(0, 1fr);
+        grid-template-columns: 150px minmax(0, 1fr) 42px 80px 58px minmax(0, 1fr) 150px minmax(0, 1fr);
         align-items: center;
         gap: 6px;
     }
@@ -1509,7 +1511,7 @@
         font-weight: 600;
     }
 
-    .victim-row input {
+    .victim-row input, .victim-row select {
         width: 100%;
     }
 
@@ -1761,7 +1763,7 @@
     }
 
     .victim-row {
-        grid-template-columns: 150px minmax(0, 1fr) 42px 70px 55px minmax(0, 1fr);
+        grid-template-columns: 150px minmax(0, 1fr) 42px 70px 55px minmax(0, 1fr) 150px minmax(0, 1fr);
     }
 }
 
@@ -1844,6 +1846,9 @@
 .dl-capture-wrap .patients-table {
     min-width: 0;
 }
+.dl-capture-wrap .report-table th {
+    width: 17%;
+}
 .dl-capture-wrap .report-actions,
 .dl-capture-wrap .add-btn,
 .dl-capture-wrap .remove-btn {
@@ -1893,6 +1898,10 @@
 
     .report-table {
         font-size: 11px;
+    }
+
+    .report-table th {
+        width: 17%;
     }
 
     .report-photos {

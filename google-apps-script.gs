@@ -4,7 +4,7 @@ const MAIN_HEADERS = [
   "Dispatched Resources", "Incident Caller / Informant", "Contact No.",
   "Dispatched Time", "Arrival at Scene", "Take Off from Scene", "Arrival at Hospital",
   "Barangay", "Municipality", "Patient", "Age", "Address", "Injuries", "Victim Status",
-  "Initial Impression", "Disposition", "Involved Vehicle Type",
+  "Initial Impression", "Disposition", "PCR By", "Involved Vehicle Type",
   "First Aid Provided", "Remarks", "Drivers", "Responders", "Photos"
 ];
 
@@ -26,7 +26,7 @@ function doPost(e) {
       return jsonOut({ ok: true, duplicate: true });
     }
 
-    const sheet = SpreadsheetApp.getActiveSpreadsheet().getActiveSheet();
+    const sheet = getMainSheet();
 
     ensureMainHeader(sheet);
     const sitrepNo = nextSitrepNo(sheet);
@@ -38,6 +38,7 @@ function doPost(e) {
     const victimStatuses = (data.patients || []).map(p => p.victimStatus).join("; ");
     const initialImpressions = (data.patients || []).map(p => p.initialImpression).join("; ");
     const dispositions = (data.patients || []).map(p => p.disposition).join("; ");
+    const pcrBy = (data.patients || []).map(p => p.pcrBy).join("; ");
 
     const photoLinks = savePhotos(data.photos || [], sitrepNo, data.callDate);
 
@@ -50,7 +51,7 @@ function doPost(e) {
       data.caller, data.contact,
       data.dispatchedTime, data.arrivalTime, data.takeoffTime, data.hospitalTime,
       data.barangay, data.municipality, patients, ages, addresses, injuries, victimStatuses,
-      initialImpressions, dispositions, (data.vehicleType || []).join(", "),
+      initialImpressions, dispositions, pcrBy, (data.vehicleType || []).join(", "),
       data.firstAid, data.remarks,
       (data.drivers || []).join(", "),
       (data.responders || []).join(", "),
@@ -66,15 +67,37 @@ function doPost(e) {
   }
 }
 
-// Writes the header row on a fresh sheet, or inserts the SITREP # column into
-// a sheet that was created before this column existed.
+// Ensures the main sheet has a proper header row:
+//  - an empty sheet gets the full MAIN_HEADERS row;
+//  - a legacy sheet (headers present but no SITREP # column) gets the column
+//    inserted in front;
+//  - a sheet whose header row is missing or corrupted gets a header row
+//    inserted above the existing data (data is preserved, not overwritten).
 function ensureMainHeader(sheet) {
   if (sheet.getLastRow() === 0) {
     sheet.appendRow(MAIN_HEADERS);
-  } else if (sheet.getRange(1, 1).getValue() !== "SITREP #") {
+    return;
+  }
+  if (String(sheet.getRange(1, 1).getValue()) === "SITREP #") return;
+
+  // Legacy sheet: header exists but was created before the SITREP # column.
+  const row1 = sheet.getRange(1, 1, 1, MAIN_HEADERS.length).getValues()[0].map(String);
+  if (row1.join("\u0001") === MAIN_HEADERS.slice(1).join("\u0001")) {
     sheet.insertColumnBefore(1);
     sheet.getRange(1, 1).setValue("SITREP #");
+    return;
   }
+
+  // Header row is missing or corrupted — insert a header row above the data.
+  sheet.insertRowBefore(1);
+  sheet.getRange(1, 1, 1, MAIN_HEADERS.length).setValues([MAIN_HEADERS]);
+}
+
+// One-time helper to repair the main sheet's header row (run from the Apps
+// Script editor). Existing records are preserved below the inserted header.
+function repairMainSheet() {
+  const sheet = getMainSheet();
+  ensureMainHeader(sheet);
 }
 
 // Returns the next sequential number for the current year, e.g. "2026-001".
@@ -86,6 +109,10 @@ function nextSitrepNo(sheet) {
   const key = "SITREP_COUNT_" + year;
   const lock = LockService.getScriptLock();
 
+  // The sheet is the source of truth: if all records for the year were cleared,
+  // the count restarts at 001 instead of continuing from the stale cache.
+  const sheetMax = maxSitrepNoInSheet(sheet, year);
+
   let locked = false;
   try { locked = lock.tryLock(10000); } catch (e) { locked = false; }
 
@@ -93,14 +120,18 @@ function nextSitrepNo(sheet) {
   if (locked) {
     try {
       last = Number(props.getProperty(key) || 0);
-      if (!last) last = maxSitrepNoInSheet(sheet, year);
+      if (sheetMax === 0) {
+        last = 0;
+      } else if (last < sheetMax) {
+        last = sheetMax;
+      }
       last += 1;
       props.setProperty(key, String(last));
     } finally {
       lock.releaseLock();
     }
   } else {
-    last = maxSitrepNoInSheet(sheet, year) + 1;
+    last = sheetMax + 1;
   }
 
   return year + "-" + String(last).padStart(3, "0");
@@ -235,19 +266,27 @@ function doGet(e) {
   }
 }
 
-// Finds the main SITREP sheet (the one with the "SITREP #" header), falling
-// back to the active sheet.
+// Finds the main SITREP sheet (the one with the "SITREP #" header). The
+// Responder Log sheet is skipped even though its header also starts with
+// "SITREP #". Falls back to the first non-log sheet, creating a fresh one if
+// none exists.
 function getMainSheet() {
-  const sheets = SpreadsheetApp.getActiveSpreadsheet().getSheets();
+  const ss = SpreadsheetApp.getActiveSpreadsheet();
+  const sheets = ss.getSheets();
   for (const s of sheets) {
-    if (String(s.getRange(1, 1).getValue()) === "SITREP #") return s;
+    if (s.getSheetName() !== LOG_SHEET_NAME && String(s.getRange(1, 1).getValue()) === "SITREP #") return s;
   }
-  return SpreadsheetApp.getActiveSpreadsheet().getActiveSheet();
+  for (const s of sheets) {
+    if (s.getSheetName() !== LOG_SHEET_NAME) return s;
+  }
+  return ss.insertSheet("Sheet1");
 }
 
 // Reads every row of the main sheet into an array of objects keyed by header.
+// The header row is repaired first if it is missing or corrupted.
 function listSitreps() {
   const sheet = getMainSheet();
+  ensureMainHeader(sheet);
   const lastRow = sheet.getLastRow();
   const lastCol = sheet.getLastColumn();
   if (lastRow < 1) return [];

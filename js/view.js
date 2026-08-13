@@ -94,7 +94,8 @@ function applyFilters() {
         if (to && cd > to) return false;
         if (q) {
             const hay = [r["SITREP #"], r["Nature of Incident"], r["Assigned Team"],
-                r["Barangay"], r["Municipality"], r["Patient"], r["Drivers"], r["Responders"]]
+                r["Barangay"], r["Municipality"], r["Patient"], r["Drivers"], r["Responders"],
+                r["PCR By"]]
                 .join(" ").toLowerCase();
             if (hay.indexOf(q) === -1) return false;
         }
@@ -284,6 +285,10 @@ function formatDate(v) {
 }
 
 function fmt(v) {
+    if (typeof v === "string") {
+        const m = /^(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2})/.exec(v);
+        if (m && m[1] === "1899") return m[4] + ":" + m[5];
+    }
     if (!(v instanceof Date) || isNaN(v)) return v;
     const p = n => String(n).padStart(2, "0");
     if (v.getFullYear() >= 2000) {
@@ -294,6 +299,13 @@ function fmt(v) {
 
 function splitJoined(s) {
     return String(s ?? "").split(/;\s*|,\s*|\n/).map(x => x.trim()).filter(Boolean);
+}
+
+// Position-preserving split for the per-patient columns. Unlike splitJoined,
+// empty slots are kept so a patient with no value (e.g. no PCR) still lines up
+// with the same patient in the other columns.
+function splitSlots(s) {
+    return String(s ?? "").split(/;\s*|\n/).map(x => x.trim());
 }
 
 function savedPhotosSection(links) {
@@ -324,13 +336,14 @@ function loadSavedPhotos(scope) {
 }
 
 function renderReportFromSheet(row) {
-    const patients = splitJoined(row["Patient"]);
-    const ages = splitJoined(row["Age"]);
-    const addresses = splitJoined(row["Address"]);
-    const injuries = splitJoined(row["Injuries"]);
-    const statuses = splitJoined(row["Victim Status"]);
-    const impressions = splitJoined(row["Initial Impression"]);
-    const dispositions = splitJoined(row["Disposition"]);
+    const patients = splitSlots(row["Patient"]);
+    const ages = splitSlots(row["Age"]);
+    const addresses = splitSlots(row["Address"]);
+    const injuries = splitSlots(row["Injuries"]);
+    const statuses = splitSlots(row["Victim Status"]);
+    const impressions = splitSlots(row["Initial Impression"]);
+    const dispositions = splitSlots(row["Disposition"]);
+    const pcrBy = splitSlots(row["PCR By"]);
     const br = arr => arr.map(esc).join("<br>");
 
     const patientRows = patients.map((p, i) => `
@@ -343,6 +356,7 @@ function renderReportFromSheet(row) {
             <td>${esc(statuses[i] || "")}</td>
             <td>${esc(impressions[i] || "")}</td>
             <td>${esc(dispositions[i] || "")}</td>
+            <td>${esc(pcrBy[i] || "")}</td>
         </tr>`).join("");
 
     return `
@@ -350,9 +364,9 @@ function renderReportFromSheet(row) {
         <table class="report-table report-table-main">
             <tr><th>Nature of Incident</th><td>${esc(row["Nature of Incident"])}</td>
                 <th>Assigned Team</th><td>${esc(row["Assigned Team"])}</td></tr>
-            <tr><th>Shift-In-Charge (SIC)</th><td>${esc(row["Shift-In-Charge (SIC)"])}</td>
+            <tr><th>Shift-In-Charge</th><td>${esc(row["Shift-In-Charge (SIC)"])}</td>
                 <th>Operator in Charge</th><td>${esc(row["Operator in Charge"])}</td></tr>
-            <tr><th>Dispatched Resource(s)</th><td colspan="3">${br(splitJoined(row["Dispatched Resources"]))}</td></tr>
+            <tr><th>Dispatched Resource(s)</th><td colspan="3">${splitJoined(row["Dispatched Resources"]).map(esc).join(", ")}</td></tr>
             <tr><th>Incident Caller / Informant</th><td>${esc(row["Incident Caller / Informant"])}</td>
                 <th>Contact No.</th><td>${esc(row["Contact No."])}</td></tr>
             <tr><th>Call Date</th><td>${esc(fmt(row["Call Date"]))}</td>
@@ -366,12 +380,12 @@ function renderReportFromSheet(row) {
             <tr><th>Patients / Victims</th><td colspan="3">
                 <div class="patients-wrap">
                 <table class="report-table patients-table">
-                    <tr><th style="width:6%">No.</th><th style="width:14%">Patient / Victim</th><th style="width:6%">Age</th><th style="width:16%">Address</th><th style="width:14%">Injuries Description</th><th style="width:11%">Status of Victim</th><th style="width:17%">Initial Impression</th><th style="width:16%">Disposition</th></tr>
+                    <tr><th style="width:5%">No.</th><th style="width:13%">Patient / Victim</th><th style="width:6%">Age</th><th style="width:14%">Address</th><th style="width:13%">Injuries Description</th><th style="width:11%">Status of Victim</th><th style="width:15%">Initial Impression</th><th style="width:14%">Disposition</th><th style="width:9%">PCR By</th></tr>
                     ${patientRows}
                 </table>
                 </div>
             </td></tr>
-            <tr><th>Involved Vehicle Type</th><td colspan="3">${br(splitJoined(row["Involved Vehicle Type"]))}</td></tr>
+            <tr><th>Involved Vehicle Type</th><td colspan="3">${splitJoined(row["Involved Vehicle Type"]).map(esc).join(", ")}</td></tr>
             <tr><th>First Aid Provided</th><td colspan="3">${esc(row["First Aid Provided"])}</td></tr>
             <tr><th>Remarks</th><td colspan="3">${esc(row["Remarks"])}</td></tr>
             <tr><th>Driver(s)</th><td>${br(splitJoined(row["Drivers"]))}</td>

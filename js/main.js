@@ -150,6 +150,8 @@ function victimItemHTML(letter, addRemoveBtn) {
             <input type="number" name="age[]" class="age required" min="0" required>
             <span style="text-align:right;">Address:</span>
             <input type="text" name="address[]" class="required" required>
+            <span class="pcr-label">PCR By:</span>
+            <select name="pcrBy[]"><option value="">-- Select Responder --</option>${responderOptions()}</select>
         </div>
         <div class="victim-status-row">
             <span class="inj-label">Injuries Description:</span>
@@ -234,6 +236,15 @@ function refreshAllSelects() {
     refreshSelects("operator");
     refreshSelects("drivers");
     refreshSelects("responders");
+    refreshPcrSelects();
+}
+
+// Repopulate the "PCR By" dropdowns in every patient/victim row for
+// the current team.
+function refreshPcrSelects() {
+    document.querySelectorAll('#victims select[name="pcrBy[]"]').forEach(sel => {
+        sel.innerHTML = `<option value="">-- Select Responder --</option>` + responderOptions();
+    });
 }
 function addDriver() {
     const div = document.createElement("div");
@@ -288,6 +299,7 @@ function buildReport() {
     const victimStatuses = getValues("victimStatus[]");
     const initialImpressions = getValues("initialImpression[]");
     const dispositions = getValues("disposition[]");
+    const pcrBy = getValues("pcrBy[]");
     const vehicleTypes = getValues("vehicleType[]");
     const drivers = getValues("driver[]");
     const responders = getValues("responder[]");
@@ -302,15 +314,16 @@ function buildReport() {
             <td>${esc(victimStatuses[i])}</td>
             <td>${esc(initialImpressions[i])}</td>
             <td>${esc(dispositions[i])}</td>
+            <td>${esc(pcrBy[i])}</td>
         </tr>`).join("");
 
     return `
         <table class="report-table report-table-main">
             <tr><th>Nature of Incident</th><td>${esc(document.getElementById("nature").value)}</td>
                 <th>Assigned Team</th><td>${esc(document.getElementById("assignedTeam").value)}</td></tr>
-            <tr><th>Shift-In-Charge (SIC)</th><td>${esc(document.querySelector('[name="sic"]').value)}</td>
+            <tr><th>Shift-In-Charge</th><td>${esc(document.querySelector('[name="sic"]').value)}</td>
                 <th>Operator in Charge</th><td>${esc(document.querySelector('[name="operator"]').value)}</td></tr>
-            <tr><th>Dispatched Resource(s)</th><td colspan="3">${resources.map(esc).join("<br>")}</td></tr>
+            <tr><th>Dispatched Resource(s)</th><td colspan="3">${resources.map(esc).join(", ")}</td></tr>
             <tr><th>Incident Caller / Informant</th><td>${esc(document.querySelector('[name="caller"]').value)}</td>
                 <th>Contact No.</th><td>${esc(document.querySelector('[name="contact"]').value)}</td></tr>
             <tr><th>Call Date</th><td>${esc(document.querySelector('[name="callDate"]').value)}</td>
@@ -324,12 +337,12 @@ function buildReport() {
             <tr><th>Patients / Victims</th><td colspan="3">
                 <div class="patients-wrap">
                 <table class="report-table patients-table">
-                    <tr><th style="width:6%">No.</th><th style="width:14%">Patient / Victim</th><th style="width:6%">Age</th><th style="width:16%">Address</th><th style="width:14%">Injuries Description</th><th style="width:11%">Status of Victim</th><th style="width:17%">Initial Impression</th><th style="width:16%">Disposition</th></tr>
+                    <tr><th style="width:5%">No.</th><th style="width:13%">Patient / Victim</th><th style="width:6%">Age</th><th style="width:14%">Address</th><th style="width:13%">Injuries Description</th><th style="width:11%">Status of Victim</th><th style="width:15%">Initial Impression</th><th style="width:14%">Disposition</th><th style="width:9%">PCR By</th></tr>
                     ${patientRows}
                 </table>
                 </div>
             </td></tr>
-            <tr><th>Involved Vehicle Type</th><td colspan="3">${vehicleTypes.map(esc).join("<br>")}</td></tr>
+            <tr><th>Involved Vehicle Type</th><td colspan="3">${vehicleTypes.map(esc).join(", ")}</td></tr>
             <tr><th>First Aid Provided</th><td colspan="3">${esc(document.querySelector('[name="firstAid"]').value)}</td></tr>
             <tr><th>Remarks</th><td colspan="3">${esc(document.querySelector('[name="remarks"]').value)}</td></tr>
             <tr><th>Driver(s)</th><td>${drivers.map(esc).join("<br>")}</td>
@@ -452,6 +465,7 @@ function buildReportData() {
     const victimStatuses = getValues("victimStatus[]");
     const initialImpressions = getValues("initialImpression[]");
     const dispositions = getValues("disposition[]");
+    const pcrBy = getValues("pcrBy[]");
 
     return {
         nature: val("nature"),
@@ -476,7 +490,8 @@ function buildReportData() {
             injury: injuries[i],
             victimStatus: victimStatuses[i],
             initialImpression: initialImpressions[i],
-            disposition: dispositions[i]
+            disposition: dispositions[i],
+            pcrBy: pcrBy[i]
         })),
         vehicleType: getValues("vehicleType[]"),
         firstAid: val("firstAid"),
