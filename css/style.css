@@ -1870,7 +1870,8 @@
     .report-actions,
     .add-btn,
     .remove-btn,
-    #savingOverlay {
+    #savingOverlay,
+    #sitrepLogout {
         display: none !important;
     }
 
