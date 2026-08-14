@@ -3,7 +3,7 @@ const EMAIL_TO = "cdrrmotabaco2014@gmail.com, gelmolatojunior@gmail.com";
 const TEAMS = {
     Alpha: {
         sic: ["Ramon D. Rodriguez"],
-        operator: ["Luis C. Borlagdan"],
+        operator: ["Luis C. Borlagdan", "Vicente B. Carale Jr."],
         drivers: ["Al C. Asis", "Jomar B. Belo", "Eugenio S. Cao Jr.", "Warren B. Henson", "Antonio B. Buison Jr."],
         responders: [
             "Wynel B. De Mesa", "Vicente B. Carale Jr.", "Jaime V. Buensoceso",
@@ -39,7 +39,7 @@ const TEAMS = {
 
 const ALL_ROSTER = {
     sic: ["Ramon D. Rodriguez", "Ambrocio V. Piolino", "Romar B. Bombon"],
-    operator: ["Imelda B. Castillo", "Luis C. Borlagdan", "Domingo C. Bron Jr.", "Dennis R. Flores"],
+    operator: ["Imelda B. Castillo", "Luis C. Borlagdan", "Domingo C. Bron Jr.", "Dennis R. Flores", "Vicente B. Carale Jr."],
     drivers: [
         "Al C. Asis", "Jomar B. Belo", "Eugenio S. Cao Jr.", "Warren B. Henson",
         "Antonio B. Buison Jr.", "Ariel C. Bolaños", "Christopher Jeorge B. Lacerna",
