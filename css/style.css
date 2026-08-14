@@ -301,6 +301,35 @@
         margin-left: 16px;
         margin-right: 42px;
     }
+    .draft-notice {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+        margin: 0 22px 14px;
+        padding: 9px 14px;
+        background: #fff8e1;
+        border: 1px solid #e0c86a;
+        border-radius: 7px;
+        font-size: 13px;
+        color: #5b4b1a;
+    }
+    .draft-notice[hidden] {
+        display: none;
+    }
+    .draft-dismiss {
+        flex: none;
+        border: 0;
+        background: transparent;
+        font-size: 18px;
+        line-height: 1;
+        color: #5b4b1a;
+        cursor: pointer;
+        padding: 0 4px;
+    }
+    .draft-dismiss:hover {
+        color: #8a1f1f;
+    }
     button.icon-btn {
         width: 42px;
         height: 42px;

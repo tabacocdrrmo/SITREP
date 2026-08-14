@@ -22,6 +22,11 @@
         <button type="button" class="action action-primary" onclick="location.href='view.html'">View Saved Sitreps</button>
     </div>
 
+    <div id="draftNotice" class="draft-notice" hidden>
+        <span>A draft was restored from your last session. Continue filling it out, or press Cancel to discard.</span>
+        <button type="button" class="draft-dismiss" onclick="clearDraft()" title="Dismiss">&times;</button>
+    </div>
+
     <form id="incidentForm" novalidate>
         <div class="top-grid">
             <div class="left">

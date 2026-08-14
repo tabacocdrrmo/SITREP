@@ -370,6 +370,173 @@ let submissionId = ""; // unique id per report; prevents duplicate saves
 let saving = false;
 let reportSaved = false;
 
+// Auto-saved draft so an accidental reload does not wipe the in-progress form.
+const DRAFT_KEY = "sitrep_draft_v1";
+let draftTimer = null;
+
+function scheduleDraftSave() {
+    clearTimeout(draftTimer);
+    draftTimer = setTimeout(saveDraft, 400);
+}
+
+function saveDraft() {
+    try {
+        const val = n => {
+            const el = document.querySelector(`[name="${n}"]`);
+            return el ? el.value : "";
+        };
+        const draft = {
+            fields: {
+                nature: val("nature"),
+                assignedTeam: val("assignedTeam"),
+                sic: val("sic"),
+                operator: val("operator"),
+                caller: val("caller"),
+                contact: val("contact"),
+                callDate: val("callDate"),
+                callTime: val("callTime"),
+                dispatchedTime: val("dispatchedTime"),
+                arrivalTime: val("arrivalTime"),
+                takeoffTime: val("takeoffTime"),
+                hospitalTime: val("hospitalTime"),
+                barangay: val("barangay"),
+                municipality: val("municipality"),
+                firstAid: val("firstAid"),
+                remarks: val("remarks")
+            },
+            resources: getValues("resource[]"),
+            patients: getValues("patient[]"),
+            ages: getValues("age[]"),
+            addresses: getValues("address[]"),
+            pcrBy: getValues("pcrBy[]"),
+            injuries: getValues("injury[]"),
+            victimStatuses: getValues("victimStatus[]"),
+            impressions: getValues("initialImpression[]"),
+            dispositions: getValues("disposition[]"),
+            vehicleTypes: getValues("vehicleType[]"),
+            drivers: getValues("driver[]"),
+            responders: getValues("responder[]")
+        };
+        localStorage.setItem(DRAFT_KEY, JSON.stringify(draft));
+    } catch (_) {}
+}
+
+function clearDraft() {
+    try { localStorage.removeItem(DRAFT_KEY); } catch (_) {}
+    const notice = document.getElementById("draftNotice");
+    if (notice) notice.hidden = true;
+}
+
+// Rebuilds the dynamic sections and restores every field from a saved draft.
+function restoreDraft() {
+    let d;
+    try { d = JSON.parse(localStorage.getItem(DRAFT_KEY) || "null"); } catch (_) { d = null; }
+    if (!d || !d.fields) return;
+    const f = d.fields;
+
+    const set = (n, v) => {
+        const el = document.querySelector(`[name="${n}"]`);
+        if (el) el.value = v ?? "";
+    };
+    ["nature", "assignedTeam", "caller", "contact", "callDate", "callTime",
+        "dispatchedTime", "arrivalTime", "takeoffTime", "hospitalTime",
+        "barangay", "municipality", "firstAid", "remarks"].forEach(n => set(n, f[n]));
+
+    const resEl = document.getElementById("resources");
+    resEl.innerHTML = "";
+    (d.resources && d.resources.length ? d.resources : [""]).forEach((v, i) => {
+        const first = i === 0;
+        const div = document.createElement("div");
+        div.className = "row resource-row";
+        div.innerHTML = `
+            <span class="label">Dispatched Resource:</span>
+            <select name="resource[]" class="resource-input required" required>${resourceOptions()}</select>
+            <button type="button" class="${first ? "add-btn" : "remove-btn"}" onclick="${first ? "addResource()" : "removeResource(this)"}" title="${first ? "Add resource" : "Remove resource"}">${first ? "+" : "&#8722;"}</button>`;
+        resEl.appendChild(div);
+    });
+
+    const vEl = document.getElementById("victims");
+    vEl.innerHTML = "";
+    const victimCount = Math.max(1, d.patients ? d.patients.length : 0);
+    for (let i = 0; i < victimCount; i++) {
+        const letter = String.fromCharCode(65 + i);
+        const isLast = i === victimCount - 1;
+        const btn = isLast
+            ? `<button type="button" class="add-btn" onclick="addVictim()" title="Add patient/victim">+</button>`
+            : `<button type="button" class="remove-btn" onclick="removeVictim(this)" title="Remove patient/victim">&#8722;</button>`;
+        const item = document.createElement("div");
+        item.className = "victim-item";
+        item.dataset.index = i + 1;
+        item.innerHTML = victimItemHTML(letter, btn);
+        vEl.appendChild(item);
+    }
+    document.querySelectorAll("#victims .victim-item").forEach((item, i) => {
+        const val = (arr) => (arr && arr[i]) || "";
+        item.querySelector('[name="patient[]"]').value = val(d.patients);
+        item.querySelector('[name="age[]"]').value = val(d.ages);
+        item.querySelector('[name="address[]"]').value = val(d.addresses);
+        item.querySelector('[name="injury[]"]').value = val(d.injuries);
+        item.querySelector('[name="victimStatus[]"]').value = val(d.victimStatuses);
+        item.querySelector('[name="initialImpression[]"]').value = val(d.impressions);
+        item.querySelector('[name="disposition[]"]').value = val(d.dispositions);
+    });
+
+    const vtEl = document.getElementById("vehicleTypes");
+    vtEl.innerHTML = "";
+    (d.vehicleTypes && d.vehicleTypes.length ? d.vehicleTypes : [""]).forEach((v, i) => {
+        const first = i === 0;
+        const div = document.createElement("div");
+        div.className = "vehicle-row";
+        div.innerHTML = `
+            <select name="vehicleType[]" class="required" required>${vehicleTypeOptions()}</select>
+            <button type="button" class="${first ? "add-btn" : "remove-btn"}" onclick="${first ? "addVehicleType()" : "removeVehicleType(this)"}" title="${first ? "Add vehicle type" : "Remove vehicle type"}">${first ? "+" : "&#8722;"}</button>`;
+        vtEl.appendChild(div);
+    });
+
+    const buildTeam = (id, kind) => {
+        const el = document.getElementById(id);
+        el.innerHTML = "";
+        const names = d[kind] && d[kind].length ? d[kind] : [""];
+        const isDriver = kind === "drivers";
+        const itemClass = isDriver ? "driver-item" : "responder-item";
+        const placeholder = isDriver ? "Driver" : "Responder";
+        const opts = isDriver ? driverOptions() : responderOptions();
+        names.forEach((v, i) => {
+            const first = i === 0;
+            const div = document.createElement("div");
+            div.className = "team-item " + itemClass;
+            div.innerHTML = `
+                <select name="${isDriver ? "driver[]" : "responder[]"}" class="required" required><option value="">-- Select ${placeholder} --</option>${opts}</select>
+                <button type="button" class="${first ? "add-btn" : "remove-btn"}" onclick="${first ? (isDriver ? "addDriver()" : "addResponder()") : (isDriver ? "removeDriver(this)" : "removeResponder(this)")}" title="${first ? "Add " + placeholder : "Remove " + placeholder}">${first ? "+" : "&#8722;"}</button>`;
+            el.appendChild(div);
+        });
+    };
+    buildTeam("drivers", "drivers");
+    buildTeam("responders", "responders");
+
+    // Rebuild team-dependent options for the restored team, then re-apply the
+    // selections so they match the roster of the restored team.
+    refreshAllSelects();
+    set("sic", f.sic);
+    set("operator", f.operator);
+    document.querySelectorAll('#drivers select[name="driver[]"]').forEach((sel, i) => {
+        sel.value = (d.drivers && d.drivers[i]) || "";
+    });
+    document.querySelectorAll('#responders select[name="responder[]"]').forEach((sel, i) => {
+        sel.value = (d.responders && d.responders[i]) || "";
+    });
+    document.querySelectorAll('#victims select[name="pcrBy[]"]').forEach((sel, i) => {
+        sel.value = (d.pcrBy && d.pcrBy[i]) || "";
+    });
+
+    submissionId = "";
+    saving = false;
+    reportSaved = false;
+
+    const notice = document.getElementById("draftNotice");
+    if (notice) notice.hidden = false;
+}
+
 // Generates a unique id for one submission attempt. Kept per report so a
 // retry of the same save cannot write a second row.
 function newSubmissionId() {
@@ -455,6 +622,14 @@ document.getElementById("incidentForm").addEventListener("submit", function(e) {
 });
 
 document.getElementById("assignedTeam").addEventListener("change", refreshAllSelects);
+
+document.getElementById("incidentForm").addEventListener("input", scheduleDraftSave);
+document.getElementById("incidentForm").addEventListener("change", scheduleDraftSave);
+document.getElementById("incidentForm").addEventListener("click", e => {
+    if (e.target.closest(".add-btn, .remove-btn")) setTimeout(scheduleDraftSave, 0);
+});
+
+restoreDraft();
 
 function buildReportData() {
     const val = name => document.querySelector(`[name="${name}"]`).value;
@@ -545,6 +720,7 @@ function saveToSheet() {
                     reportSaved = true;
                     saving = false;
                     setSavingUI(false);
+                    clearDraft();
                     alert(result.res.duplicate ? "This report was already saved." : "Report saved to Google Sheets.");
                     resolve(true);
                     return;
@@ -692,4 +868,5 @@ function clearForm() {
     saving = false;
     reportSaved = false;
     setSavingUI(false);
+    clearDraft();
 }
