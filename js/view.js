@@ -8,20 +8,9 @@ let sortOrder = "desc";
 function viewSitreps() {
     const list = document.getElementById("savedList");
     list.innerHTML = "Loading...";
-    const url = SHEETS_WEB_APP_URL + "?action=sitreps";
-    fetch(url)
-        .then(r => {
-            if (!r.ok) throw new Error("HTTP " + r.status);
-            return r.text();
-        })
-        .then(text => {
-            let res;
-            try {
-                res = JSON.parse(text);
-            } catch (e) {
-                throw new Error("Not JSON. URL: " + url + " | response: " + text.slice(0, 120));
-            }
-            if (!res.ok) throw new Error(res.error || "Failed to load");
+    invokeSitrepData("sitreps")
+        .then(res => {
+            if (!res || res.ok !== true) throw new Error((res && res.error) || "Failed to load");
             renderSavedList(res.rows);
         })
         .catch(err => {
@@ -226,56 +215,26 @@ function downloadReportImage() {
     });
 }
 
-// Converts an image URL to a data URL so html2canvas can draw it. Google Drive
-// images don't send CORS headers from drive.google.com, so photos are fetched
-// through CORS-safe sources in order: the Apps Script backend (after redeploy),
-// then the images.weserv.nl proxy and Google's lh3 CDN (both send
-// Access-Control-Allow-Origin), with the raw thumbnail last.
+// Converts an image URL to a data URL so html2canvas can draw it. Photos live
+// in a private Drive folder and are served only through the authenticated
+// sitrep-data edge function (the Apps Script photo action runs as the script
+// owner, so the folder stays private and CORS is not an issue).
 function photoDataUrl(url) {
     if (/^data:/i.test(url)) return Promise.resolve(url);
     const idMatch = /\/d\/([^/]+)/.exec(url || "") ||
         /thumbnail\?id=([^&\s]+)/.exec(url || "") ||
         /[\?&]id=([^&\s]+)/.exec(url || "");
     const id = idMatch && idMatch[1];
-    const candidates = [];
-    if (id) {
-        candidates.push({ src: SHEETS_WEB_APP_URL + "?action=photo&id=" + id, proxy: true });
-        candidates.push({ src: "https://images.weserv.nl/?url=" + encodeURIComponent("drive.google.com/thumbnail?id=" + id + "&sz=w600"), proxy: false });
-        candidates.push({ src: "https://lh3.googleusercontent.com/d/" + id + "=s800", proxy: false });
-    }
-    candidates.push({ src: url, proxy: false });
-    let i = 0;
-    const next = () => {
-        if (i >= candidates.length) return Promise.resolve(null);
-        const c = candidates[i++];
-        console.log("[photo] trying", c.src);
-        return fetch(c.src, { mode: "cors" })
-            .then(r => {
-                if (!r.ok) throw new Error("HTTP " + r.status);
-                return c.proxy ? r.json() : r.blob();
-            })
-            .then(res => {
-                if (c.proxy) {
-                    if (!res.ok || !res.data) throw new Error("no data in proxy response");
-                    return "data:" + res.type + ";base64," + res.data;
-                }
-                return new Promise((resolve, reject) => {
-                    const fr = new FileReader();
-                    fr.onload = () => resolve(fr.result);
-                    fr.onerror = () => reject(new Error("read failed"));
-                    fr.readAsDataURL(res);
-                });
-            })
-            .then(dataUrl => {
-                console.log("[photo] OK via", c.src.slice(0, 80));
-                return dataUrl;
-            })
-            .catch(err => {
-                console.log("[photo] FAIL", c.src.slice(0, 80), "->", String(err));
-                return next();
-            });
-    };
-    return next();
+    if (!id) return Promise.resolve(null);
+    return invokeSitrepData("photo", { id: id })
+        .then(res => {
+            if (!res || !res.ok || !res.data) throw new Error("no photo data");
+            return "data:" + res.type + ";base64," + res.data;
+        })
+        .catch(err => {
+            console.log("[photo] FAIL", String(err));
+            return null;
+        });
 }
 
 function formatDate(v) {
@@ -399,5 +358,5 @@ document.addEventListener("DOMContentLoaded", () => {
         document.getElementById(id).addEventListener("input", applyFilters));
     ["filterNature", "filterTeam"].forEach(id =>
         document.getElementById(id).addEventListener("change", applyFilters));
-    viewSitreps();
+    window.onLoginReady = viewSitreps;
 });

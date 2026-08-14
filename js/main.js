@@ -506,47 +506,34 @@ function buildReportData() {
 const MAX_SAVE_ATTEMPTS = 3;
 const SAVE_TIMEOUT_MS = 90000;
 
-// Sends one POST and classifies the result. Resolves to one of:
+// Sends one report through the authenticated edge function and classifies the
+// result. Resolves to one of:
 //   { type: "ok", res }         valid JSON from the server
 //   { type: "server", error }   valid JSON reporting a server-side failure
-//   { type: "transient", detail } HTML page / network error / timeout
+//   { type: "transient", detail } network error / timeout / session problem
 function attemptSave() {
-    const controller = new AbortController();
-    const timer = setTimeout(() => controller.abort(), SAVE_TIMEOUT_MS);
+    const timer = new Promise((_, reject) =>
+        setTimeout(() => reject(new Error("timed out")), SAVE_TIMEOUT_MS)
+    );
 
-    return fetch(SHEETS_WEB_APP_URL, {
-        method: "POST",
-        mode: "cors",
-        signal: controller.signal,
-        body: JSON.stringify(buildReportData())
-    })
-        .then(r => r.text())
-        .then(text => {
-            let res;
-            try {
-                res = JSON.parse(text);
-            } catch (e) {
-                throw { transientError: "Server returned a non-JSON response: " + String(text || "").slice(0, 40) };
-            }
+    return Promise.race([
+        invokeSitrepData("submit", buildReportData()),
+        timer
+    ])
+        .then(res => {
             if (!res || res.ok !== true) {
                 return { type: "server", error: (res && res.error) || "unknown server error" };
             }
             return { type: "ok", res: res };
         })
         .catch(err => {
-            if (err && err.transientError) return { type: "transient", detail: err.transientError };
-            if (err && err.name === "AbortError") return { type: "transient", detail: "timed out" };
-            return { type: "transient", detail: String(err) };
-        })
-        .finally(() => clearTimeout(timer));
+            if (err && err.message === "timed out") return { type: "transient", detail: "timed out" };
+            return { type: "transient", detail: String(err && err.message || err) };
+        });
 }
 
 function saveToSheet() {
     if (reportSaved || saving) return Promise.resolve(reportSaved);
-    if (!SHEETS_WEB_APP_URL) {
-        alert("Google Sheets is not configured yet. Open js/shared.js and paste your Apps Script Web App URL into SHEETS_WEB_APP_URL.");
-        return Promise.resolve(false);
-    }
 
     saving = true;
     setSavingUI(true);

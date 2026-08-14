@@ -14,7 +14,29 @@ const LOG_HEADERS = ["SITREP #", "Recorded At", "Call Date", "Nature of Incident
 const SUBMISSION_IDS_KEY = "SITREP_SUBMISSION_IDS";
 const SUBMISSION_ID_LIMIT = 50;
 
+// The Apps Script web app no longer serves data to anonymous callers. Every
+// request must carry ?token=<SITREP_API_TOKEN> (set via setApiToken, below).
+// Only the Supabase edge functions know the token, so the sheet stays closed
+// even if the web app URL leaks.
+function requireAuth(e) {
+  const token = PropertiesService.getScriptProperties().getProperty("SITREP_API_TOKEN");
+  if (!token) return false;
+  const given = (e && e.parameter && e.parameter.token) || "";
+  return given === token;
+}
+
+function setApiToken(token) {
+  if (!token || typeof token !== "string" || token.length < 32) {
+    throw new Error("setApiToken(token): token must be a string of at least 32 characters.");
+  }
+  PropertiesService.getScriptProperties().setProperty("SITREP_API_TOKEN", token);
+  console.log("SITREP_API_TOKEN saved.");
+}
+
 function doPost(e) {
+  if (!requireAuth(e)) {
+    return jsonOut({ ok: false, error: "Unauthorized" });
+  }
   let submissionId = "";
   try {
     const data = JSON.parse(e.postData.contents);
@@ -238,6 +260,10 @@ function logPersonnel(sitrepNo, data) {
 // rows; otherwise returns the Responder Log rows (for the stats website).
 function doGet(e) {
   try {
+    if (!requireAuth(e)) {
+      return jsonOut({ ok: false, error: "Unauthorized" });
+    }
+
     const action = (e && e.parameter && e.parameter.action) || "";
 
     if (action === "sitreps") {
@@ -394,7 +420,8 @@ function getPhotosFolder() {
     props.setProperty("SITREP_PHOTO_FOLDER_ID", root.getId());
   }
 
-  ensurePhotoFolderShared(root, props);
+  // The folder stays private; photos are served only through the
+  // ?action=photo endpoint, which runs as the script owner and has Drive access.
 
   const now = new Date();
   const pad = n => String(n).padStart(2, "0");
@@ -412,17 +439,32 @@ function getPhotosFolder() {
   return sub;
 }
 
-// Shares the root "SITREP Photos" folder with "Anyone with the link can view",
-// so every photo (current and future) is viewable/downloadable via its link.
-// This runs one time instead of once per photo. A failure to share never
-// blocks a save; the app still serves photos through the ?action=photo endpoint.
-function ensurePhotoFolderShared(folder, props) {
-  if (!folder) return;
-  if (props.getProperty("SITREP_PHOTO_FOLDER_SHARED")) return;
+// One-time helper to revoke the previous "Anyone with the link can view" share
+// on the SITREP Photos root folder (run from the Apps Script editor). Photos
+// are now served only through the authenticated ?action=photo endpoint, so the
+// folder must not be publicly shared.
+function unsharePhotosFolder() {
+  const props = PropertiesService.getScriptProperties();
+
+  let root;
+  const rootId = props.getProperty("SITREP_PHOTO_FOLDER_ID");
+  if (rootId) {
+    try { root = DriveApp.getFolderById(rootId); } catch (e) { /* look up again */ }
+  }
+  if (!root) {
+    const folders = DriveApp.getFoldersByName("SITREP Photos");
+    if (!folders.hasNext()) {
+      console.log("No 'SITREP Photos' folder found.");
+      return;
+    }
+    root = folders.next();
+  }
+
   try {
-    folder.setSharing(DriveApp.Access.ANYONE_WITH_LINK, DriveApp.Permission.VIEW);
-    props.setProperty("SITREP_PHOTO_FOLDER_SHARED", "true");
+    root.setSharing(DriveApp.Access.PRIVATE, DriveApp.Permission.NONE);
+    props.deleteProperty("SITREP_PHOTO_FOLDER_SHARED");
+    console.log("SITREP Photos folder is now private.");
   } catch (err) {
-    console.warn("Photo folder sharing failed: " + String(err));
+    console.error("Failed to unshare photo folder: " + String(err));
   }
 }
