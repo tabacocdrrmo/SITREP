@@ -336,7 +336,11 @@ function listSitreps() {
 function formatCell(header, value) {
   if (!(value instanceof Date)) return value;
   const pad = n => String(n).padStart(2, "0");
-  if (header.indexOf("Time") !== -1) {
+  // Time-only cells use Sheets' serial base (year 1899/1900). Checking the year
+  // (not the header text) covers every time column, including "Arrival at
+  // Scene", "Take Off from Scene" and "Arrival at Hospital" which don't contain
+  // the word "Time" and would otherwise leak as raw Date objects.
+  if (header.indexOf("Time") !== -1 || value.getFullYear() < 1970) {
     return pad(value.getHours()) + ":" + pad(value.getMinutes());
   }
   if (header === "Call Date") {

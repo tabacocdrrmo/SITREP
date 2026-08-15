@@ -720,7 +720,7 @@ function saveToSheet() {
                     reportSaved = true;
                     saving = false;
                     setSavingUI(false);
-                    clearDraft();
+                    clearForm(true);
                     alert(result.res.duplicate ? "This report was already saved." : "Report saved to Google Sheets.");
                     resolve(true);
                     return;
@@ -819,8 +819,8 @@ function downloadReportImage() {
     });
 }
 
-function clearForm() {
-    if (!confirm("Are you sure you want to clear all fields?")) return;
+function clearForm(silent) {
+    if (!silent && !confirm("Are you sure you want to clear all fields?")) return;
     const form = document.getElementById("incidentForm");
     form.reset();
 
@@ -863,6 +863,16 @@ function clearForm() {
 
     document.querySelectorAll(".required-empty").forEach(el => el.classList.remove("required-empty"));
     document.querySelectorAll(".check-required-empty").forEach(el => el.classList.remove("check-required-empty"));
+
+    if (silent) {
+        // Called after a successful save: keep submissionId and reportSaved so
+        // the Save & Email button stays disabled ("Saved") and the report cannot
+        // be re-sent as a fresh record.
+        saving = false;
+        setSavingUI(false);
+        clearDraft();
+        return;
+    }
 
     submissionId = "";
     saving = false;
