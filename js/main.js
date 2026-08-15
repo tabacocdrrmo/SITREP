@@ -616,6 +616,7 @@ document.getElementById("incidentForm").addEventListener("submit", function(e) {
     if (!submissionId) submissionId = newSubmissionId();
 
     loadSelectedPhotos().then(() => {
+        assignedSitrepNo = "";
         reportHTML = buildReport();
         document.getElementById("reportContent").innerHTML = reportHTML;
         document.getElementById("reportModal").style.display = "block";
@@ -725,6 +726,9 @@ function saveToSheet() {
                     if (result.res && result.res.sitrepNo) {
                         assignedSitrepNo = result.res.sitrepNo;
                         showAssignedSitrepNo(assignedSitrepNo);
+                    } else {
+                        assignedSitrepNo = "";
+                        recoverAssignedSitrepNo();
                     }
                     alert(result.res.duplicate ? "This report was already saved." : "Report saved to Google Sheets.");
                     resolve(true);
@@ -794,6 +798,24 @@ function showAssignedSitrepNo(sitrepNo) {
     div.style.cssText = "text-align:right;font-size:15px;font-weight:700;margin:2px 0 6px;";
     div.textContent = "SITREP No. " + sitrepNo;
     content.prepend(div);
+}
+
+// Best-effort recovery of the sheet-assigned number when the save response
+// doesn't carry it (stale deployment, or a retry came back as duplicate). The
+// sitrep list is appended oldest-first, so the newest (last) row is the one
+// that was just saved.
+function recoverAssignedSitrepNo() {
+    invokeSitrepData("sitreps")
+        .then(res => {
+            const rows = (res && res.rows) || [];
+            const row = rows.length ? rows[rows.length - 1] : null;
+            const no = row && row["SITREP #"];
+            if (no) {
+                assignedSitrepNo = no;
+                showAssignedSitrepNo(no);
+            }
+        })
+        .catch(() => {});
 }
 
 // Saves the rendered report as an image. On devices that support sharing files
