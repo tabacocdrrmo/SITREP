@@ -167,6 +167,38 @@ function closeReport() {
     document.getElementById("reportModal").style.display = "none";
 }
 
+// Saves the rendered report as an image. On devices that support sharing files
+// (phones/tablets) this opens the system share sheet so the image can be saved
+// to the photo gallery or sent straight to Messenger / WhatsApp. Elsewhere it
+// falls back to a normal download.
+function saveOrShareImage(canvas, filename) {
+    const fallbackDownload = () => {
+        const link = document.createElement("a");
+        link.download = filename;
+        link.href = canvas.toDataURL("image/png");
+        link.click();
+    };
+
+    canvas.toBlob(blob => {
+        if (!blob) { fallbackDownload(); return; }
+        const file = new File([blob], filename, { type: "image/png" });
+        if (navigator.canShare && navigator.canShare({ files: [file] })) {
+            navigator.share({ title: filename.replace(/\.png$/, ""), files: [file] })
+                .catch(err => {
+                    if (err && err.name === "AbortError") return;
+                    alert("Share failed: " + err);
+                });
+        } else {
+            const url = URL.createObjectURL(blob);
+            const link = document.createElement("a");
+            link.download = filename;
+            link.href = url;
+            link.click();
+            setTimeout(() => URL.revokeObjectURL(url), 10000);
+        }
+    }, "image/png");
+}
+
 function downloadReportImage() {
     const box = document.getElementById("reportModal").querySelector(".report-box");
     if (!box) return;
@@ -204,10 +236,8 @@ function downloadReportImage() {
             windowHeight: hidden.scrollHeight
         });
     }).then(canvas => {
-        const link = document.createElement("a");
-        link.download = (currentSitrepNo ? "SITREP " + currentSitrepNo + ".png" : "sitrep.png");
-        link.href = canvas.toDataURL("image/png");
-        link.click();
+        const filename = (currentSitrepNo ? "SITREP " + currentSitrepNo : "sitrep") + ".png";
+        saveOrShareImage(canvas, filename);
     }).catch(err => {
         alert("Download Image failed: " + err);
     }).finally(() => {
