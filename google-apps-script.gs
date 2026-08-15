@@ -82,7 +82,7 @@ function doPost(e) {
 
     logPersonnel(sitrepNo, data);
 
-    return jsonOut({ ok: true });
+    return jsonOut({ ok: true, sitrepNo: sitrepNo });
   } catch (err) {
     if (submissionId) forgetSubmission(submissionId);
     return jsonOut({ ok: false, error: String(err) });

@@ -365,6 +365,7 @@ function photosSection() {
 }
 
 let reportHTML = "";
+let assignedSitrepNo = "";
 let selectedPhotos = []; // { data: base64, type: mime, name }
 let submissionId = ""; // unique id per report; prevents duplicate saves
 let saving = false;
@@ -721,6 +722,10 @@ function saveToSheet() {
                     saving = false;
                     setSavingUI(false);
                     clearForm(true);
+                    if (result.res && result.res.sitrepNo) {
+                        assignedSitrepNo = result.res.sitrepNo;
+                        showAssignedSitrepNo(assignedSitrepNo);
+                    }
                     alert(result.res.duplicate ? "This report was already saved." : "Report saved to Google Sheets.");
                     resolve(true);
                     return;
@@ -775,6 +780,54 @@ function closeReport() {
     document.getElementById("reportModal").style.display = "none";
 }
 
+// Adds the sheet-assigned number into the open preview so the downloaded image
+// includes it. The modal content is untouched by clearForm, so the number stays
+// visible for Download / Email / Print.
+function showAssignedSitrepNo(sitrepNo) {
+    if (!sitrepNo) return;
+    const content = document.getElementById("reportContent");
+    if (!content) return;
+    const existing = content.querySelector(".assigned-sitrep-no");
+    if (existing) existing.remove();
+    const div = document.createElement("div");
+    div.className = "assigned-sitrep-no";
+    div.style.cssText = "text-align:right;font-size:15px;font-weight:700;margin:2px 0 6px;";
+    div.textContent = "SITREP No. " + sitrepNo;
+    content.prepend(div);
+}
+
+// Saves the rendered report as an image. On devices that support sharing files
+// (phones/tablets) this opens the system share sheet so the image can be saved
+// to the photo gallery or sent straight to Messenger / WhatsApp. Elsewhere it
+// falls back to a normal download.
+function saveOrShareImage(canvas, filename) {
+    const fallbackDownload = () => {
+        const link = document.createElement("a");
+        link.download = filename;
+        link.href = canvas.toDataURL("image/png");
+        link.click();
+    };
+
+    canvas.toBlob(blob => {
+        if (!blob) { fallbackDownload(); return; }
+        const file = new File([blob], filename, { type: "image/png" });
+        if (navigator.canShare && navigator.canShare({ files: [file] })) {
+            navigator.share({ title: filename.replace(/\.png$/, ""), files: [file] })
+                .catch(err => {
+                    if (err && err.name === "AbortError") return;
+                    alert("Share failed: " + err);
+                });
+        } else {
+            const url = URL.createObjectURL(blob);
+            const link = document.createElement("a");
+            link.download = filename;
+            link.href = url;
+            link.click();
+            setTimeout(() => URL.revokeObjectURL(url), 10000);
+        }
+    }, "image/png");
+}
+
 function downloadReportImage() {
     const box = document.getElementById("reportModal").querySelector(".report-box");
     if (!box) return;
@@ -808,10 +861,8 @@ function downloadReportImage() {
             windowHeight: hidden.scrollHeight
         });
     }).then(canvas => {
-        const link = document.createElement("a");
-        link.download = "sitrep.png";
-        link.href = canvas.toDataURL("image/png");
-        link.click();
+        const filename = (assignedSitrepNo ? "SITREP " + assignedSitrepNo : "sitrep") + ".png";
+        saveOrShareImage(canvas, filename);
     }).catch(err => {
         alert("Download Image failed: " + err);
     }).finally(() => {
