@@ -28,6 +28,7 @@
     </div>
 
     <form id="incidentForm" novalidate>
+        <div class="req-legend">Fields marked <span class="req-star">*</span> are required.</div>
         <div class="top-grid">
             <div class="left">
                 <div class="row">
@@ -150,6 +151,11 @@
                 <div class="victim-row">
                     <span class="patient-label">(A) Patient / Victim</span>
                     <input type="text" name="patient[]" class="required" required>
+                    <span class="sex-label">Sex:</span>
+                    <span class="checks sex-checks">
+                        <label><input type="checkbox" name="sex[]" class="required" value="M"> M</label>
+                        <label><input type="checkbox" name="sex[]" class="required" value="F"> F</label>
+                    </span>
                     <span style="text-align:right;">Age:</span>
                     <input type="number" name="age[]" class="age required" min="0" required>
                     <span style="text-align:right;">Address:</span>

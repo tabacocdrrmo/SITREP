@@ -336,6 +336,7 @@ function loadSavedPhotos(scope) {
 
 function renderReportFromSheet(row) {
     const patients = splitSlots(row["Patient"]);
+    const sexes = splitSlots(row["Sex"]);
     const ages = splitSlots(row["Age"]);
     const addresses = splitSlots(row["Address"]);
     const injuries = splitSlots(row["Injuries"]);
@@ -349,6 +350,7 @@ function renderReportFromSheet(row) {
         <tr>
             <td>${i + 1}</td>
             <td>${esc(p)}</td>
+            <td>${esc(sexes[i] || "")}</td>
             <td>${esc(ages[i] || "")}</td>
             <td>${esc(addresses[i] || "")}</td>
             <td>${esc(injuries[i] || "")}</td>
@@ -376,10 +378,11 @@ function renderReportFromSheet(row) {
                 <th>Arrival at Hospital</th><td>${esc(fmt(row["Arrival at Hospital"]))}</td></tr>
             <tr><th>Place / Landmark</th><td>${esc(row["Barangay"])}</td>
                 <th>Municipality</th><td>${esc(row["Municipality"])}</td></tr>
-            <tr><th>Patients / Victims</th><td colspan="3">
+            <tr><th colspan="4">Patients / Victims Details</th></tr>
+            <tr><td colspan="4">
                 <div class="patients-wrap">
                 <table class="report-table patients-table">
-                    <tr><th style="width:5%">No.</th><th style="width:13%">Patient / Victim</th><th style="width:6%">Age</th><th style="width:14%">Address</th><th style="width:13%">Injuries Description</th><th style="width:11%">Status of Victim</th><th style="width:15%">Initial Impression</th><th style="width:14%">Disposition</th><th style="width:9%">PCR By</th></tr>
+                    <tr><th style="width:5%">No.</th><th style="width:12%">Name</th><th style="width:5%">Sex</th><th style="width:6%">Age</th><th style="width:12%">Address</th><th style="width:12%">Injuries Description</th><th style="width:11%">Status of Victim</th><th style="width:13%">Initial Impression</th><th style="width:13%">Disposition</th><th style="width:11%">PCR By</th></tr>
                     ${patientRows}
                 </table>
                 </div>

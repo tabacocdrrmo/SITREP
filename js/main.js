@@ -98,6 +98,7 @@ function addVehicleType() {
         <select name="vehicleType[]" class="required" required>${vehicleTypeOptions()}</select>
         <button type="button" class="remove-btn" onclick="removeVehicleType(this)" title="Remove vehicle type">&#8722;</button>`;
     document.getElementById("vehicleTypes").appendChild(div);
+    markRequiredFields(div);
 }
 
 function removeVehicleType(btn) {
@@ -113,6 +114,7 @@ function addResource() {
         <button type="button" class="remove-btn" onclick="removeResource(this)" title="Remove resource">&#8722;</button>
     `;
     document.getElementById("resources").appendChild(div);
+    markRequiredFields(div);
 }
 
 function removeResource(btn) {
@@ -146,6 +148,11 @@ function victimItemHTML(letter, addRemoveBtn) {
         <div class="victim-row">
             <span class="patient-label">(${letter}) Patient / Victim</span>
             <input type="text" name="patient[]" class="required" required>
+            <span class="sex-label">Sex:</span>
+            <span class="checks sex-checks">
+                <label><input type="checkbox" name="sex[]" class="required" value="M"> M</label>
+                <label><input type="checkbox" name="sex[]" class="required" value="F"> F</label>
+            </span>
             <span style="text-align:right;">Age:</span>
             <input type="number" name="age[]" class="age required" min="0" required>
             <span style="text-align:right;">Address:</span>
@@ -176,11 +183,13 @@ function addVictim() {
         `<button type="button" class="remove-btn" onclick="removeVictim(this)" title="Remove patient/victim">&#8722;</button>`);
     document.getElementById("victims").appendChild(div);
     renumberVictims();
+    markRequiredFields(document.getElementById("victims"));
 }
 
 function removeVictim(btn) {
     btn.closest(".victim-item").remove();
     renumberVictims();
+    markRequiredFields(document.getElementById("victims"));
 }
 
 function renumberVictims() {
@@ -253,6 +262,7 @@ function addDriver() {
         <select name="driver[]" class="required" required><option value="">-- Select Driver --</option>${driverOptions()}</select>
         <button type="button" class="remove-btn" onclick="removeDriver(this)" title="Remove driver">&#8722;</button>`;
     document.getElementById("drivers").appendChild(div);
+    markRequiredFields(div);
 }
 function removeDriver(btn) {
     btn.closest(".driver-item").remove();
@@ -264,6 +274,7 @@ function addResponder() {
         <select name="responder[]" class="required" required><option value="">-- Select Responder --</option>${responderOptions()}</select>
         <button type="button" class="remove-btn" onclick="removeResponder(this)" title="Remove responder">&#8722;</button>`;
     document.getElementById("responders").appendChild(div);
+    markRequiredFields(div);
 }
 function removeResponder(btn) {
     btn.closest(".responder-item").remove();
@@ -273,13 +284,24 @@ function validateForm() {
     let valid = true;
     document.querySelectorAll(".required").forEach(el => {
         el.classList.remove("required-empty");
+        el.classList.remove("check-required-empty");
+        if (el.type === "checkbox" || el.type === "radio") {
+            const checked = el.form
+                ? el.form.querySelectorAll(`[name="${el.name}"]:checked`)
+                : document.querySelectorAll(`[name="${el.name}"]:checked`);
+            if (!checked.length) {
+                el.classList.add("check-required-empty");
+                valid = false;
+            }
+            return;
+        }
         if (!String(el.value || "").trim()) {
             el.classList.add("required-empty");
             valid = false;
         }
     });
 
-    const firstEmpty = document.querySelector(".required-empty");
+    const firstEmpty = document.querySelector(".required-empty, .check-required-empty");
     if (firstEmpty) firstEmpty.scrollIntoView({behavior:"smooth", block:"center"});
 
     if (!valid) alert("Please fill all the required fields.");
@@ -290,9 +312,45 @@ function getValues(name) {
     return [...document.querySelectorAll(`[name="${name}"]`)].map(x => x.value);
 }
 
+function getCheckedValues(name) {
+    return [...document.querySelectorAll(`[name="${name}"]:checked`)].map(x => x.value);
+}
+
+function markRequiredLabel(labelEl) {
+    if (!labelEl || labelEl.querySelector(".req-star")) return;
+    labelEl.insertAdjacentHTML("beforeend", ' <span class="req-star" title="Required">*</span>');
+}
+
+function markRequiredFields(scope) {
+    const root = scope || document;
+    root.querySelectorAll("input.required, select.required, textarea.required").forEach(el => {
+        if (el.type === "checkbox") {
+            const checks = el.closest(".checks");
+            if (checks) markRequiredLabel(checks.previousElementSibling);
+            return;
+        }
+        if (el.closest(".vehicle-row")) {
+            const card = el.closest(".vehicle-card");
+            if (card) markRequiredLabel(card.firstElementChild);
+            return;
+        }
+        if (el.closest(".team-item")) {
+            const item = el.closest(".team-item");
+            if (item) markRequiredLabel(item.nextElementSibling);
+            return;
+        }
+        if (el.parentElement && el.parentElement.classList.contains("place-group")) {
+            markRequiredLabel(el.nextElementSibling);
+            return;
+        }
+        markRequiredLabel(el.previousElementSibling);
+    });
+}
+
 function buildReport() {
     const resources = getValues("resource[]");
     const patients = getValues("patient[]");
+    const sexes = getCheckedValues("sex[]");
     const ages = getValues("age[]");
     const addresses = getValues("address[]");
     const injuries = getValues("injury[]");
@@ -308,6 +366,7 @@ function buildReport() {
         <tr>
             <td>${i + 1}</td>
             <td>${esc(p)}</td>
+            <td>${esc(sexes[i])}</td>
             <td>${esc(ages[i])}</td>
             <td>${esc(addresses[i])}</td>
             <td>${esc(injuries[i])}</td>
@@ -334,10 +393,11 @@ function buildReport() {
                 <th>Arrival at Hospital</th><td>${esc(document.querySelector('[name="hospitalTime"]').value)}</td></tr>
             <tr><th>Place / Landmark</th><td>${esc(document.querySelector('[name="barangay"]').value)}</td>
                 <th>Municipality</th><td>${esc(document.querySelector('[name="municipality"]').value)}</td></tr>
-            <tr><th>Patients / Victims</th><td colspan="3">
+            <tr><th colspan="4">Patients / Victims Details</th></tr>
+            <tr><td colspan="4">
                 <div class="patients-wrap">
                 <table class="report-table patients-table">
-                    <tr><th style="width:5%">No.</th><th style="width:13%">Patient / Victim</th><th style="width:6%">Age</th><th style="width:14%">Address</th><th style="width:13%">Injuries Description</th><th style="width:11%">Status of Victim</th><th style="width:15%">Initial Impression</th><th style="width:14%">Disposition</th><th style="width:9%">PCR By</th></tr>
+                    <tr><th style="width:5%">No.</th><th style="width:12%">Name</th><th style="width:5%">Sex</th><th style="width:6%">Age</th><th style="width:12%">Address</th><th style="width:12%">Injuries Description</th><th style="width:11%">Status of Victim</th><th style="width:13%">Initial Impression</th><th style="width:13%">Disposition</th><th style="width:11%">PCR By</th></tr>
                     ${patientRows}
                 </table>
                 </div>
@@ -407,6 +467,7 @@ function saveDraft() {
             },
             resources: getValues("resource[]"),
             patients: getValues("patient[]"),
+            sexes: getCheckedValues("sex[]"),
             ages: getValues("age[]"),
             addresses: getValues("address[]"),
             pcrBy: getValues("pcrBy[]"),
@@ -474,6 +535,9 @@ function restoreDraft() {
     document.querySelectorAll("#victims .victim-item").forEach((item, i) => {
         const val = (arr) => (arr && arr[i]) || "";
         item.querySelector('[name="patient[]"]').value = val(d.patients);
+        item.querySelectorAll('[name="sex[]"]').forEach(cb => {
+            cb.checked = (d.sexes || []).includes(cb.value);
+        });
         item.querySelector('[name="age[]"]').value = val(d.ages);
         item.querySelector('[name="address[]"]').value = val(d.addresses);
         item.querySelector('[name="injury[]"]').value = val(d.injuries);
@@ -631,11 +695,23 @@ document.getElementById("incidentForm").addEventListener("click", e => {
     if (e.target.closest(".add-btn, .remove-btn")) setTimeout(scheduleDraftSave, 0);
 });
 
+// Keep the M / F sex checkboxes mutually exclusive within each patient row.
+document.getElementById("victims").addEventListener("change", e => {
+    if (e.target.name !== "sex[]") return;
+    const row = e.target.closest(".victim-item");
+    if (!row) return;
+    row.querySelectorAll('[name="sex[]"]').forEach(cb => {
+        if (cb !== e.target) cb.checked = false;
+    });
+});
+
 restoreDraft();
+markRequiredFields();
 
 function buildReportData() {
     const val = name => document.querySelector(`[name="${name}"]`).value;
     const patients = getValues("patient[]");
+    const sexes = getCheckedValues("sex[]");
     const ages = getValues("age[]");
     const addresses = getValues("address[]");
     const injuries = getValues("injury[]");
@@ -662,6 +738,7 @@ function buildReportData() {
         municipality: val("municipality"),
         patients: patients.map((p, i) => ({
             patient: p,
+            sex: sexes[i],
             age: ages[i],
             address: addresses[i],
             injury: injuries[i],
@@ -929,6 +1006,8 @@ function clearForm(silent) {
         </div>`;
 
     refreshAllSelects();
+
+    markRequiredFields();
 
     const photosInput = document.getElementById("photos");
     if (photosInput) photosInput.value = "";

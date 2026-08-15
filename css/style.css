@@ -94,7 +94,7 @@
     }
     .victim-row {
         display: grid;
-        grid-template-columns: 92px 225px 58px 44px 55px 215px 150px 170px;
+        grid-template-columns: 92px 225px 40px 92px 58px 44px 55px 215px 150px 170px;
         align-items: center;
         gap: 4px;
         margin-bottom: 6px;
@@ -102,6 +102,7 @@
     .victim-row input, .victim-row select { width: 100%; }
     .victim-row .age { width: 60px; }
     .victim-row .patient-label { text-align: right; }
+    .victim-row .sex-label { text-align: right; }
     .victim-row .pcr-label { text-align: right; }
     .victim-status-row {
         display: grid;
@@ -329,6 +330,15 @@
     }
     .draft-dismiss:hover {
         color: #8a1f1f;
+    }
+    .req-legend {
+        font-size: 12px;
+        color: #667;
+        margin: 0 0 8px;
+    }
+    .req-star {
+        color: #d00000;
+        font-weight: 700;
     }
     button.icon-btn {
         width: 42px;
@@ -954,7 +964,14 @@
             gap: 8px;
         }
 
+        .victim-row > .checks {
+            display: grid;
+        }
+
         .checks label {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
             min-height: 38px;
             padding: 7px 9px;
             border: 1px solid #d5dce2;
@@ -963,8 +980,9 @@
         }
 
         input[type="checkbox"] {
-            width: 17px;
+            width: 17px !important;
             height: 17px;
+            margin: 0;
         }
 
         .vehicle-card {
@@ -1529,7 +1547,7 @@
 
     .victim-row {
         display: grid;
-        grid-template-columns: 150px minmax(0, 1fr) 42px 80px 58px minmax(0, 1fr) 150px minmax(0, 1fr);
+        grid-template-columns: 150px minmax(0, 1fr) 42px 92px 42px 80px 58px minmax(0, 1fr) 150px minmax(0, 1fr);
         align-items: center;
         gap: 6px;
     }
@@ -1792,7 +1810,7 @@
     }
 
     .victim-row {
-        grid-template-columns: 150px minmax(0, 1fr) 42px 70px 55px minmax(0, 1fr) 150px minmax(0, 1fr);
+        grid-template-columns: 150px minmax(0, 1fr) 42px 92px 42px 70px 55px minmax(0, 1fr) 150px minmax(0, 1fr);
     }
 }
 
@@ -1878,6 +1896,12 @@
 .dl-capture-wrap .report-table th {
     width: 17%;
 }
+.dl-capture-wrap .patients-table th:nth-child(3) {
+    width: 5% !important;
+}
+.dl-capture-wrap .patients-table th:nth-child(4) {
+    width: 5% !important;
+}
 .dl-capture-wrap .report-actions,
 .dl-capture-wrap .add-btn,
 .dl-capture-wrap .remove-btn {
@@ -1932,6 +1956,14 @@
 
     .report-table th {
         width: 17%;
+    }
+
+    .patients-table th:nth-child(3) {
+        width: 5% !important;
+    }
+
+    .patients-table th:nth-child(4) {
+        width: 5% !important;
     }
 
     .report-photos {

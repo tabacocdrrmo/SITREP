@@ -3,7 +3,7 @@ const MAIN_HEADERS = [
   "Nature of Incident", "Assigned Team", "Shift-In-Charge (SIC)", "Operator in Charge",
   "Dispatched Resources", "Incident Caller / Informant", "Contact No.",
   "Dispatched Time", "Arrival at Scene", "Take Off from Scene", "Arrival at Hospital",
-  "Barangay", "Municipality", "Patient", "Age", "Address", "Injuries", "Victim Status",
+  "Barangay", "Municipality", "Patient", "Sex", "Age", "Address", "Injuries", "Victim Status",
   "Initial Impression", "Disposition", "PCR By", "Involved Vehicle Type",
   "First Aid Provided", "Remarks", "Drivers", "Responders", "Photos"
 ];
@@ -54,6 +54,7 @@ function doPost(e) {
     const sitrepNo = nextSitrepNo(sheet);
 
     const patients = (data.patients || []).map(p => p.patient).join("; ");
+    const sexes = (data.patients || []).map(p => p.sex).join("; ");
     const ages = (data.patients || []).map(p => p.age).join("; ");
     const addresses = (data.patients || []).map(p => p.address).join("; ");
     const injuries = (data.patients || []).map(p => p.injury).join("; ");
@@ -72,7 +73,7 @@ function doPost(e) {
       (data.resources || []).join(", "),
       data.caller, data.contact,
       data.dispatchedTime, data.arrivalTime, data.takeoffTime, data.hospitalTime,
-      data.barangay, data.municipality, patients, ages, addresses, injuries, victimStatuses,
+      data.barangay, data.municipality, patients, sexes, ages, addresses, injuries, victimStatuses,
       initialImpressions, dispositions, pcrBy, (data.vehicleType || []).join(", "),
       data.firstAid, data.remarks,
       (data.drivers || []).join(", "),
@@ -100,19 +101,38 @@ function ensureMainHeader(sheet) {
     sheet.appendRow(MAIN_HEADERS);
     return;
   }
-  if (String(sheet.getRange(1, 1).getValue()) === "SITREP #") return;
+  if (String(sheet.getRange(1, 1).getValue()) === "SITREP #") {
+    ensureSexColumn(sheet);
+    return;
+  }
 
   // Legacy sheet: header exists but was created before the SITREP # column.
   const row1 = sheet.getRange(1, 1, 1, MAIN_HEADERS.length).getValues()[0].map(String);
   if (row1.join("\u0001") === MAIN_HEADERS.slice(1).join("\u0001")) {
     sheet.insertColumnBefore(1);
     sheet.getRange(1, 1).setValue("SITREP #");
+    ensureSexColumn(sheet);
     return;
   }
 
   // Header row is missing or corrupted — insert a header row above the data.
   sheet.insertRowBefore(1);
   sheet.getRange(1, 1, 1, MAIN_HEADERS.length).setValues([MAIN_HEADERS]);
+}
+
+// Adds the "Sex" column right after "Patient" when the header row doesn't have
+// it yet. Inserting a column shifts existing cells uniformly, so stored records
+// keep their column alignment; older records simply end up with no sex value.
+function ensureSexColumn(sheet) {
+  const lastCol = sheet.getLastColumn();
+  if (lastCol < 1) return;
+  const headers = sheet.getRange(1, 1, 1, lastCol).getValues()[0].map(String);
+  if (headers.indexOf("Sex") !== -1) return;
+  const patientIdx = headers.indexOf("Patient");
+  if (patientIdx === -1) return;
+  const patientCol = patientIdx + 1; // 1-based column number of Patient
+  sheet.insertColumnAfter(patientCol);
+  sheet.getRange(1, patientCol + 1).setValue("Sex");
 }
 
 // One-time helper to repair the main sheet's header row (run from the Apps
@@ -123,17 +143,20 @@ function repairMainSheet() {
 }
 
 // Returns the next sequential number for the current year, e.g. "2026-001".
-// The counter is cached in script properties (guarded by a lock) so the sheet
-// only needs to be scanned once per year instead of on every upload.
+// The base comes from the most recent row in the sheet (last row + 1), falling
+// back to the highest number of the year when the newest row belongs to an
+// earlier year. A counter cached in script properties (guarded by a lock) keeps
+// concurrent saves from reusing the same number.
 function nextSitrepNo(sheet) {
   const year = new Date().getFullYear();
   const props = PropertiesService.getScriptProperties();
   const key = "SITREP_COUNT_" + year;
   const lock = LockService.getScriptLock();
 
-  // The sheet is the source of truth: if all records for the year were cleared,
-  // the count restarts at 001 instead of continuing from the stale cache.
-  const sheetMax = maxSitrepNoInSheet(sheet, year);
+  // Sheet is the source of truth: base from the last row when it belongs to the
+  // current year, otherwise the highest current-year number already recorded.
+  let base = lastSitrepNoInSheet(sheet, year);
+  if (base < 0) base = maxSitrepNoInSheet(sheet, year);
 
   let locked = false;
   try { locked = lock.tryLock(10000); } catch (e) { locked = false; }
@@ -142,10 +165,10 @@ function nextSitrepNo(sheet) {
   if (locked) {
     try {
       last = Number(props.getProperty(key) || 0);
-      if (sheetMax === 0) {
+      if (base === 0) {
         last = 0;
-      } else if (last < sheetMax) {
-        last = sheetMax;
+      } else if (last < base) {
+        last = base;
       }
       last += 1;
       props.setProperty(key, String(last));
@@ -153,10 +176,22 @@ function nextSitrepNo(sheet) {
       lock.releaseLock();
     }
   } else {
-    last = sheetMax + 1;
+    last = base + 1;
   }
 
   return year + "-" + String(last).padStart(3, "0");
+}
+
+// Reads the SITREP # of the last data row. Returns its numeric suffix when it
+// belongs to the given year, -1 when the row is empty, unparseable, or from a
+// different year.
+function lastSitrepNoInSheet(sheet, year) {
+  const lastRow = sheet.getLastRow();
+  if (lastRow < 2) return -1;
+  const value = sheet.getRange(lastRow, 1).getValue();
+  const m = /^(\d{4})-(\d+)$/.exec(String(value || ""));
+  if (m && Number(m[1]) === year) return Number(m[2]);
+  return -1;
 }
 
 // Scans the SITREP # column for the highest number in the given year.
