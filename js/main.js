@@ -393,7 +393,7 @@ function buildReport() {
                 <th>Arrival at Hospital</th><td>${esc(document.querySelector('[name="hospitalTime"]').value)}</td></tr>
             <tr><th>Place / Landmark</th><td>${esc(document.querySelector('[name="barangay"]').value)}</td>
                 <th>Municipality</th><td>${esc(document.querySelector('[name="municipality"]').value)}</td></tr>
-            <tr><th colspan="4">Patients / Victims Details</th></tr>
+            <tr><th colspan="4">Patients / Victims / Involved Details</th></tr>
             <tr><td colspan="4">
                 <div class="patients-wrap">
                 <table class="report-table patients-table">
