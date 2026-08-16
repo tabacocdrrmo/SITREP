@@ -4,7 +4,7 @@ const TEAMS = {
     Alpha: {
         sic: ["Ramon D. Rodriguez"],
         operator: ["Luis C. Borlagdan", "Vicente B. Carale Jr."],
-        drivers: ["Al C. Asis", "Jomar B. Belo", "Eugenio S. Cao Jr.", "Warren B. Henson", "Antonio B. Buison Jr."],
+        drivers: ["Al C. Asis", "Jomar B. Belo", "Ramon D. Rodriguez", "Eugenio S. Cao Jr.", "Warren B. Henson", "Antonio B. Buison Jr."],
         responders: [
             "Wynel B. De Mesa", "Vicente B. Carale Jr.", "Jaime V. Buensoceso",
             "Ferdinand P. San Juan", "Roberto S. Villegas", "Shay Marie Luz R. Benavides",
@@ -15,7 +15,7 @@ const TEAMS = {
     Bravo: {
         sic: ["Ambrocio V. Piolino"],
         operator: ["Domingo C. Bron Jr."],
-        drivers: ["Ariel C. Bolaños", "Christopher Jeorge B. Lacerna", "Reynaldo B. Belgica Jr.", "Jaime Benosa Jr. II", "Segundo B. Ballon Jr."],
+        drivers: ["Ariel C. Bolaños", "Ambrocio V. Piolino", "Christopher Jeorge B. Lacerna", "Reynaldo B. Belgica Jr.", "Jaime Benosa Jr. II", "Segundo B. Ballon Jr."],
         responders: [
             "Jonel B. Bocalbos", "Romulo P. Bolilan Jr.", "Adrian C. Callao",
             "Arnel C. Camata", "Levi Martin B. Madrid", "Joan B. Sayago",
@@ -26,7 +26,7 @@ const TEAMS = {
     Charlie: {
         sic: ["Romar B. Bombon"],
         operator: ["Dennis R. Flores", "Imelda B. Castillo"],
-        drivers: ["Jonel A. Buendia", "Angelo B. Baraero", "Marlon B. Belda", "Jophen B. Bragais", "Pablito M. Amortizado Jr."],
+        drivers: ["Jonel A. Buendia", "Romar B. Bombon", "Angelo B. Baraero", "Marlon B. Belda", "Jophen B. Bragais", "Pablito M. Amortizado Jr."],
         responders: [
             "Herman B. Bonaobra", "Ero B. Obreros", "Noah M. Altavano",
             "Pedro G. Boringot, I", "Francis R. Tañang", "Janine Eve Q. Base",
