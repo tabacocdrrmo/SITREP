@@ -29,7 +29,7 @@ const TEAMS = {
         drivers: ["Jonel A. Buendia", "Romar B. Bombon", "Angelo B. Baraero", "Marlon B. Belda", "Jophen B. Bragais", "Pablito M. Amortizado Jr."],
         responders: [
             "Herman B. Bonaobra", "Ero B. Obreros", "Noah M. Altavano",
-            "Pedro G. Boringot, I", "Francis R. Tañang", "Janine Eve Q. Base",
+            "Pedro G. Boringot I", "Francis R. Tañang", "Janine Eve Q. Base",
             "Salvacion Amor B. Campit",
             "Maria Carmela B. Bien", "Romyna B. Bongat", "Claire B. Bobier",
             "Estiffunny S. Celestial", "Julius T. Bariso", "Joseph B. Riosa"
@@ -54,7 +54,7 @@ const ALL_ROSTER = {
         "Ferdinand P. San Juan", "Arnel C. Camata", "Roberto S. Villegas",
         "Levi Martin B. Madrid", "Francis R. Tañang", "Shay Marie Luz R. Benavides",
         "Joan B. Sayago", "Janine Eve Q. Base", "Salvacion Amor B. Campit",
-        "Pedro G. Boringot, I",
+        "Pedro G. Boringot I",
         "Maria Carmela B. Bien", "Romyna B. Bongat", "Claire B. Bobier",
         "Estiffunny S. Celestial", "Julius T. Bariso", "Joseph B. Riosa"
     ]
