@@ -378,7 +378,7 @@ function renderReportFromSheet(row) {
                 <th>Arrival at Hospital</th><td>${esc(fmt(row["Arrival at Hospital"]))}</td></tr>
             <tr><th>Place / Landmark</th><td>${esc(row["Barangay"])}</td>
                 <th>Municipality</th><td>${esc(row["Municipality"])}</td></tr>
-            <tr><th colspan="4">Patients / Victims Details</th></tr>
+            <tr><th colspan="4">Patients / Victims / Involved Details:</th></tr>
             <tr><td colspan="4">
                 <div class="patients-wrap">
                 <table class="report-table patients-table">
