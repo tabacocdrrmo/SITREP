@@ -144,7 +144,7 @@ function dispositionOptions() {
 function victimItemHTML(letter, addRemoveBtn) {
     return `
         <div class="victim-row">
-            <span class="patient-label">(${letter}) Patient / Victim</span>
+            <span class="patient-label">(${letter}) Patient / Victim / Involved</span>
             <input type="text" name="patient[]" class="required" required>
             <span class="sex-label">Sex:</span>
             <span class="checks sex-checks">
@@ -178,7 +178,7 @@ function addVictim() {
     div.className = "victim-item";
     div.dataset.index = count + 1;
     div.innerHTML = victimItemHTML(letter,
-        `<button type="button" class="remove-btn" onclick="removeVictim(this)" title="Remove patient/victim">&#8722;</button>`);
+        `<button type="button" class="remove-btn" onclick="removeVictim(this)" title="Remove patient/victim/involved">&#8722;</button>`);
     document.getElementById("victims").appendChild(div);
     renumberVictims();
     markRequiredFields(document.getElementById("victims"));
@@ -194,7 +194,7 @@ function renumberVictims() {
     document.querySelectorAll("#victims .victim-item").forEach((row, i) => {
         const letter = String.fromCharCode(65 + i);
         const label = row.querySelector(".patient-label");
-        if (label) label.textContent = `(${letter}) Patient / Victim`;
+        if (label) label.textContent = `(${letter}) Patient / Victim / Involved`;
         row.dataset.index = i + 1;
     });
 }
@@ -522,8 +522,8 @@ function restoreDraft() {
         const letter = String.fromCharCode(65 + i);
         const isLast = i === victimCount - 1;
         const btn = isLast
-            ? `<button type="button" class="add-btn" onclick="addVictim()" title="Add patient/victim">+</button>`
-            : `<button type="button" class="remove-btn" onclick="removeVictim(this)" title="Remove patient/victim">&#8722;</button>`;
+? `<button type="button" class="add-btn" onclick="addVictim()" title="Add patient/victim/involved">+</button>`
+        : `<button type="button" class="remove-btn" onclick="removeVictim(this)" title="Remove patient/victim/involved">&#8722;</button>`;
         const item = document.createElement("div");
         item.className = "victim-item";
         item.dataset.index = i + 1;
@@ -972,7 +972,7 @@ function clearForm(silent) {
 
     document.getElementById("victims").innerHTML = `
         <div class="victim-item" data-index="1">
-            ${victimItemHTML("A", `<button type="button" class="add-btn" onclick="addVictim()" title="Add patient/victim">+</button>`)}
+            ${victimItemHTML("A", `<button type="button" class="add-btn" onclick="addVictim()" title="Add patient/victim/involved">+</button>`)}
         </div>`;
 
     document.getElementById("vehicleTypes").innerHTML = `

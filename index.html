@@ -149,7 +149,7 @@
         <div id="victims">
             <div class="victim-item" data-index="1">
                 <div class="victim-row">
-                    <span class="patient-label">(A) Patient / Victim</span>
+                    <span class="patient-label">(A) Patient / Victim / Involved</span>
                     <input type="text" name="patient[]" class="required" required>
                     <span class="sex-label">Sex:</span>
                     <span class="checks sex-checks">
@@ -157,9 +157,9 @@
                         <label><input type="checkbox" name="sex[]" class="required" value="F"> F</label>
                     </span>
                     <span style="text-align:right;">Age:</span>
-                    <input type="number" name="age[]" class="age required" min="0" required>
+                    <input type="number" name="age[]" class="age" min="0">
                     <span style="text-align:right;">Address:</span>
-                    <input type="text" name="address[]" class="required" required>
+                    <input type="text" name="address[]">
                     <span class="pcr-label">PCR By:</span>
                     <select name="pcrBy[]">
                         <option value="">-- Select Responder --</option>
@@ -209,7 +209,7 @@
                         <option>Declined Hospitalization</option>
                         <option>N/A</option>
                     </select>
-                    <button type="button" class="add-btn" onclick="addVictim()" title="Add patient/victim">+</button>
+                    <button type="button" class="add-btn" onclick="addVictim()" title="Add patient/victim/involved">+</button>
                 </div>
             </div>
         </div>
