@@ -345,10 +345,8 @@
         <h3 class="report-title">Situation Report</h3>
         <div id="reportContent"></div>
         <div class="report-actions">
-            <button type="button" id="saveBtn" onclick="saveAndEmail()">Save &amp; Email</button>
-            <button type="button" onclick="downloadReportImage()">Download Image</button>
-            <button type="button" onclick="window.print()">Print</button>
-            <button type="button" onclick="closeReport()">Close</button>
+            <button type="button" id="saveBtn" onclick="saveAndDownload()">Save &amp; Download</button>
+            <button type="button" id="closeBtn" onclick="closeReport()">Close</button>
         </div>
         <div id="savingOverlay" hidden>
             <div class="saving-dialog">

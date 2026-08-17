@@ -1,5 +1,3 @@
-const EMAIL_TO = "cdrrmotabaco2014@gmail.com, gelmolatojunior@gmail.com";
-
 const TEAMS = {
     Alpha: {
         sic: ["Ramon D. Rodriguez"],
@@ -154,9 +152,9 @@ function victimItemHTML(letter, addRemoveBtn) {
                 <label><input type="checkbox" name="sex[]" class="required" value="F"> F</label>
             </span>
             <span style="text-align:right;">Age:</span>
-            <input type="number" name="age[]" class="age required" min="0" required>
+            <input type="number" name="age[]" class="age" min="0">
             <span style="text-align:right;">Address:</span>
-            <input type="text" name="address[]" class="required" required>
+            <input type="text" name="address[]">
             <span class="pcr-label">PCR By:</span>
             <select name="pcrBy[]"><option value="">-- Select Responder --</option>${responderOptions()}</select>
         </div>
@@ -625,7 +623,7 @@ function setSavingUI(isSaving) {
         btn.textContent = "Saved";
     } else {
         btn.disabled = false;
-        btn.textContent = "Save & Email";
+        btn.textContent = "Save & Download";
     }
 }
 
@@ -835,26 +833,11 @@ function saveToSheet() {
     });
 }
 
-function saveAndEmail() {
+function saveAndDownload() {
     if (saving || reportSaved) return;
     saveToSheet().then(ok => {
-        if (ok) sendReport();
+        if (ok) downloadReportImage();
     });
-}
-
-function sendReport() {
-    // Opens Gmail's compose window (requires being signed in to Gmail in this
-    // browser) with the recipient, subject, and report body pre-filled.
-    const text = document.getElementById("reportContent").innerText;
-    const subject = "Tabaco CDRRMO Situation Report - " +
-        document.querySelector('[name="callDate"]').value;
-    const body = text;
-    const gmailUrl =
-        "https://mail.google.com/mail/?view=cm&fs=1" +
-        "&to=" + encodeURIComponent(EMAIL_TO) +
-        "&su=" + encodeURIComponent(subject) +
-        "&body=" + encodeURIComponent(body);
-    window.open(gmailUrl, "_blank");
 }
 
 function closeReport() {
@@ -863,7 +846,7 @@ function closeReport() {
 
 // Adds the sheet-assigned number into the open preview so the downloaded image
 // includes it. The modal content is untouched by clearForm, so the number stays
-// visible for Download / Email / Print.
+// visible for Download / Print.
 function showAssignedSitrepNo(sitrepNo) {
     if (!sitrepNo) return;
     const content = document.getElementById("reportContent");
@@ -872,7 +855,7 @@ function showAssignedSitrepNo(sitrepNo) {
     if (existing) existing.remove();
     const div = document.createElement("div");
     div.className = "assigned-sitrep-no";
-    div.style.cssText = "text-align:right;font-size:15px;font-weight:700;margin:2px 0 6px;";
+    div.style.cssText = "text-align:right;font-size:15px;font-weight:400;margin:2px 0 6px;";
     div.textContent = "SITREP No. " + sitrepNo;
     content.prepend(div);
 }
@@ -901,20 +884,25 @@ function recoverAssignedSitrepNo() {
 // falls back to a normal download.
 function saveOrShareImage(canvas, filename) {
     const fallbackDownload = () => {
-        const link = document.createElement("a");
-        link.download = filename;
-        link.href = canvas.toDataURL("image/png");
-        link.click();
+        try {
+            const link = document.createElement("a");
+            link.download = filename;
+            link.href = canvas.toDataURL("image/png");
+            link.click();
+        } catch (err) {
+            alert("Unable to download image: " + err);
+        }
     };
 
     canvas.toBlob(blob => {
         if (!blob) { fallbackDownload(); return; }
         const file = new File([blob], filename, { type: "image/png" });
-        if (navigator.canShare && navigator.canShare({ files: [file] })) {
+        const hasGesture = !navigator.userActivation || navigator.userActivation.isActive;
+        if (navigator.canShare && navigator.canShare({ files: [file] }) && hasGesture) {
             navigator.share({ title: filename.replace(/\.png$/, ""), files: [file] })
                 .catch(err => {
                     if (err && err.name === "AbortError") return;
-                    alert("Share failed: " + err);
+                    fallbackDownload();
                 });
         } else {
             const url = URL.createObjectURL(blob);
@@ -1018,8 +1006,8 @@ function clearForm(silent) {
 
     if (silent) {
         // Called after a successful save: keep submissionId and reportSaved so
-        // the Save & Email button stays disabled ("Saved") and the report cannot
-        // be re-sent as a fresh record.
+        // the Save & Download button stays disabled ("Saved") and the report
+        // cannot be re-sent as a fresh record.
         saving = false;
         setSavingUI(false);
         clearDraft();
