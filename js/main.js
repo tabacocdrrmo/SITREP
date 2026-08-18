@@ -878,10 +878,11 @@ function recoverAssignedSitrepNo() {
         .catch(() => {});
 }
 
-// Saves the rendered report as an image. On devices that support sharing files
-// (phones/tablets) this opens the system share sheet so the image can be saved
-// to the photo gallery or sent straight to Messenger / WhatsApp. Elsewhere it
-// falls back to a normal download.
+// Saves the rendered report as an image so it lands in the phone's photo
+// gallery. Priority: (1) system share sheet (operator picks "Save to Photos"),
+// (2) open the image in a new tab to long-press "Download image" (Android saves
+// it into a folder the gallery indexes), (3) plain download to the Downloads
+// folder as a last resort.
 function saveOrShareImage(canvas, filename) {
     const fallbackDownload = () => {
         try {
@@ -889,8 +890,26 @@ function saveOrShareImage(canvas, filename) {
             link.download = filename;
             link.href = canvas.toDataURL("image/png");
             link.click();
+            alert("Saved to your Downloads - open your Files app to find it.");
         } catch (err) {
             alert("Unable to download image: " + err);
+        }
+    };
+
+    const longPressSave = blob => {
+        const url = URL.createObjectURL(blob);
+        const win = window.open(url, "_blank");
+        if (win) {
+            setTimeout(() => {
+                alert("The report opened in a new tab. Press and hold the image, then tap 'Download image' to save it to your Photos.");
+            }, 500);
+        } else {
+            const link = document.createElement("a");
+            link.download = filename;
+            link.href = url;
+            link.click();
+            alert("Saved to your Downloads - open your Files app to find it.");
+            setTimeout(() => URL.revokeObjectURL(url), 10000);
         }
     };
 
@@ -899,18 +918,13 @@ function saveOrShareImage(canvas, filename) {
         const file = new File([blob], filename, { type: "image/png" });
         const hasGesture = !navigator.userActivation || navigator.userActivation.isActive;
         if (navigator.canShare && navigator.canShare({ files: [file] }) && hasGesture) {
-            navigator.share({ title: filename.replace(/\.png$/, ""), files: [file] })
+            navigator.share({ title: "SITREP report - save to Photos", files: [file] })
                 .catch(err => {
                     if (err && err.name === "AbortError") return;
-                    fallbackDownload();
+                    longPressSave(blob);
                 });
         } else {
-            const url = URL.createObjectURL(blob);
-            const link = document.createElement("a");
-            link.download = filename;
-            link.href = url;
-            link.click();
-            setTimeout(() => URL.revokeObjectURL(url), 10000);
+            longPressSave(blob);
         }
     }, "image/png");
 }
