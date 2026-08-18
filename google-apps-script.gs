@@ -1,9 +1,9 @@
 const MAIN_HEADERS = [
   "SITREP #", "Recorded At", "Call Date", "Call Time",
-  "Nature of Incident", "Assigned Team", "Shift-In-Charge (SIC)", "Operator in Charge",
+  "Nature of Incident", "Cause of Incident", "Assigned Team", "Shift-In-Charge (SIC)", "Operator in Charge",
   "Dispatched Resources", "Incident Caller / Informant", "Contact No.",
   "Dispatched Time", "Arrival at Scene", "Take Off from Scene", "Arrival at Hospital",
-  "Barangay", "Municipality", "Patient", "Sex", "Age", "Address", "Injuries", "Victim Status",
+  "Barangay", "Place / Landmark", "Municipality", "Patient", "Sex", "Age", "Address", "Injuries", "Victim Status",
   "Initial Impression", "Disposition", "PCR By", "Involved Vehicle Type",
   "First Aid Provided", "Remarks", "Drivers", "Responders", "Photos"
 ];
@@ -69,11 +69,11 @@ function doPost(e) {
       sitrepNo,
       new Date(),
       data.callDate, data.callTime,
-      data.nature, data.assignedTeam, data.sic, data.operator,
+      data.nature, data.cause, data.assignedTeam, data.sic, data.operator,
       (data.resources || []).join(", "),
       data.caller, data.contact,
       data.dispatchedTime, data.arrivalTime, data.takeoffTime, data.hospitalTime,
-      data.barangay, data.municipality, patients, sexes, ages, addresses, injuries, victimStatuses,
+      data.barangay, data.placeLandmark, data.municipality, patients, sexes, ages, addresses, injuries, victimStatuses,
       initialImpressions, dispositions, pcrBy, (data.vehicleType || []).join(", "),
       data.firstAid, data.remarks,
       (data.drivers || []).join(", "),
@@ -103,6 +103,7 @@ function ensureMainHeader(sheet) {
   }
   if (String(sheet.getRange(1, 1).getValue()) === "SITREP #") {
     ensureSexColumn(sheet);
+    ensureNewColumns(sheet);
     return;
   }
 
@@ -112,6 +113,7 @@ function ensureMainHeader(sheet) {
     sheet.insertColumnBefore(1);
     sheet.getRange(1, 1).setValue("SITREP #");
     ensureSexColumn(sheet);
+    ensureNewColumns(sheet);
     return;
   }
 
@@ -133,6 +135,44 @@ function ensureSexColumn(sheet) {
   const patientCol = patientIdx + 1; // 1-based column number of Patient
   sheet.insertColumnAfter(patientCol);
   sheet.getRange(1, patientCol + 1).setValue("Sex");
+}
+
+// Adds the "Cause of Incident" and "Place / Landmark" columns to the main
+// sheet's header row when an older deployment wrote rows without them.
+// Inserting a column shifts existing cells uniformly, so every stored value
+// stays under its original header; older records simply end up blank in the
+// new columns. The previous "Barangay" column (which held free-text place
+// entries) is renamed to "Place / Landmark" and a fresh "Barangay" column is
+// inserted in front of it.
+function ensureNewColumns(sheet) {
+  const lastCol = sheet.getLastColumn();
+  if (lastCol < 1) return;
+  const headers = sheet.getRange(1, 1, 1, lastCol).getValues()[0].map(String);
+
+  if (headers.indexOf("Cause of Incident") === -1) {
+    const natureIdx = headers.indexOf("Nature of Incident");
+    const insertAt = natureIdx === -1 ? 5 : natureIdx + 1;
+    sheet.insertColumnAfter(insertAt);
+    sheet.getRange(1, insertAt + 1).setValue("Cause of Incident");
+    headers.splice(insertAt, 0, "Cause of Incident");
+  }
+
+  if (headers.indexOf("Place / Landmark") === -1) {
+    const barangayIdx = headers.indexOf("Barangay");
+    if (barangayIdx !== -1) {
+      const col = barangayIdx + 1;
+      sheet.getRange(1, col).setValue("Place / Landmark");
+      sheet.insertColumnBefore(col);
+      sheet.getRange(1, col).setValue("Barangay");
+    } else {
+      const munIdx = headers.indexOf("Municipality");
+      const insertAt = munIdx === -1 ? headers.length : munIdx + 1;
+      sheet.insertColumnAfter(insertAt);
+      sheet.getRange(1, insertAt + 1).setValue("Barangay");
+      sheet.insertColumnAfter(insertAt + 1);
+      sheet.getRange(1, insertAt + 2).setValue("Place / Landmark");
+    }
+  }
 }
 
 // One-time helper to repair the main sheet's header row (run from the Apps
@@ -205,6 +245,14 @@ function maxSitrepNoInSheet(sheet, year) {
     if (m && Number(m[1]) === year) max = Math.max(max, Number(m[2]));
   }
   return max;
+}
+
+// One-time helper (run from the Apps Script editor) to clear the cached SITREP
+// counter for a year, so the next number is re-derived from the sheet.
+function resetSitrepCounter(year) {
+  const y = year || new Date().getFullYear();
+  PropertiesService.getScriptProperties().deleteProperty("SITREP_COUNT_" + y);
+  return "Counter for " + y + " reset.";
 }
 
 // Records a submission id and returns true if it was already seen (i.e. this

@@ -82,8 +82,8 @@ function applyFilters() {
         if (from && cd < from) return false;
         if (to && cd > to) return false;
         if (q) {
-            const hay = [r["SITREP #"], r["Nature of Incident"], r["Assigned Team"],
-                r["Barangay"], r["Municipality"], r["Patient"], r["Drivers"], r["Responders"],
+            const hay = [r["SITREP #"], r["Nature of Incident"], r["Cause of Incident"], r["Assigned Team"],
+                r["Barangay"], r["Place / Landmark"], r["Municipality"], r["Patient"], r["Drivers"], r["Responders"],
                 r["PCR By"]]
                 .join(" ").toLowerCase();
             if (hay.indexOf(q) === -1) return false;
@@ -130,7 +130,7 @@ function renderPage() {
                     <td data-label="Call Date">${esc(fmt(r["Call Date"]))}</td>
                     <td data-label="Nature">${esc(r["Nature of Incident"])}</td>
                     <td data-label="Assigned Team">${esc(r["Assigned Team"])}</td>
-                    <td data-label="Place / Landmark">${esc(r["Barangay"])}</td>
+                    <td data-label="Place / Landmark">${esc(r["Barangay"] || r["Place / Landmark"] || "")}</td>
                     <td data-label="Municipality">${esc(r["Municipality"])}</td>
                     <td data-label=""><button type="button" onclick="showSavedReport(${i})">View</button></td>
                 </tr>`;
@@ -365,6 +365,7 @@ function renderReportFromSheet(row) {
         <table class="report-table report-table-main">
             <tr><th>Nature of Incident</th><td>${esc(row["Nature of Incident"])}</td>
                 <th>Assigned Team</th><td>${esc(row["Assigned Team"])}</td></tr>
+            <tr><th>Cause of Incident</th><td colspan="3">${esc(row["Cause of Incident"] || "")}</td></tr>
             <tr><th>Shift-In-Charge</th><td>${esc(row["Shift-In-Charge (SIC)"])}</td>
                 <th>Operator in Charge</th><td>${esc(row["Operator in Charge"])}</td></tr>
             <tr><th>Dispatched Resource(s)</th><td colspan="3">${splitJoined(row["Dispatched Resources"]).map(esc).join(", ")}</td></tr>
@@ -376,8 +377,9 @@ function renderReportFromSheet(row) {
                 <th>Arrival at Scene</th><td>${esc(fmt(row["Arrival at Scene"]))}</td></tr>
             <tr><th>Take Off from Scene</th><td>${esc(fmt(row["Take Off from Scene"]))}</td>
                 <th>Arrival at Hospital</th><td>${esc(fmt(row["Arrival at Hospital"]))}</td></tr>
-            <tr><th>Place / Landmark</th><td>${esc(row["Barangay"])}</td>
+            <tr><th>Barangay</th><td>${esc(row["Barangay"] || "")}</td>
                 <th>Municipality</th><td>${esc(row["Municipality"])}</td></tr>
+            <tr><th>Place / Landmark</th><td colspan="3">${esc(row["Place / Landmark"] || row["Barangay"] || "")}</td></tr>
             <tr><th colspan="4">Patients / Victims / Involved Details:</th></tr>
             <tr><td colspan="4">
                 <div class="patients-wrap">

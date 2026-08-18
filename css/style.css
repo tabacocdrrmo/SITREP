@@ -86,7 +86,7 @@
         text-align: center;
         margin-right: 30px;
     }
-    .place-group input { width: 130px; }
+    .place-group input, .place-group select { width: 130px; }
     .place-group div { margin-top: 3px; }
 
     .victim-item {
@@ -854,6 +854,10 @@
         }
 
         .place-group input {
+            width: 100%;
+        }
+
+        .place-group select {
             width: 100%;
         }
 

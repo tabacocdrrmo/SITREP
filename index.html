@@ -47,6 +47,37 @@
                     </select>
                 </div>
                 <div class="row">
+                    <span class="label">Cause of Incident:</span>
+                    <input type="text" name="cause" class="full" list="causeSuggestions">
+                    <datalist id="causeSuggestions">
+                        <option>Road Accident</option><option>Collision</option><option>Rear-end collision</option>
+                        <option>Head-on collision</option><option>Side collision</option><option>Multiple vehicle collision</option>
+                        <option>Hit-and-run</option><option>Reckless/overspeeding</option><option>Alcohol-related</option>
+                        <option>Motorcycle involved</option><option>Pedestrian involved</option><option>Animal on road</option>
+                        <option>Loss of control</option><option>Vehicle rollover</option><option>Motorcycle skid</option>
+                        <option>Mechanical failure</option><option>Road condition</option><option>Vehicle vs. property</option>
+                        <option>Cardiac/heart-related</option><option>Stroke</option><option>Difficulty of Breathing</option>
+                        <option>Seizure</option><option>Unconsciousness</option><option>Fainting</option><option>Heat stroke</option>
+                        <option>High blood pressure</option><option>Diabetes-related</option><option>Fever</option><option>Poisoning</option>
+                        <option>Allergic reaction</option><option>Vomiting/Gastrointestinal</option><option>Pain</option><option>Wounds</option>
+                        <option>Pregnancy-related</option><option>Animal bite</option><option>Drug-related</option><option>Dizziness</option>
+                        <option>Body Weakness</option><option>Tenderness</option><option>Bleeding</option><option>Swelling/Inflammation</option>
+                        <option>Skin conditions</option><option>Medical Condition</option><option>Near drowning</option>
+                        <option>Swimming incident</option><option>Boating incident</option><option>Water-related</option>
+                        <option>Accidental drowning</option><option>Vehicle entrapment</option><option>Structural entrapment</option>
+                        <option>Machinery entrapment</option><option>Collapsed structure</option><option>Smoke alarm</option>
+                        <option>Possible fire</option><option>Electrical fire</option><option>Kitchen fire</option><option>Gas-related</option>
+                        <option>Burning material</option><option>Fire-related</option><option>Physical altercation</option>
+                        <option>Verbal altercation</option><option>Stabbing</option><option>Shooting</option><option>Blunt-force injury</option>
+                        <option>Domestic violence</option><option>Sexual assault</option><option>Robbery-related</option><option>Fall</option>
+                        <option>Fall from height</option><option>Slip/trip</option><option>Motorcycle accident</option>
+                        <option>Bicycle accident</option><option>Hit object</option><option>Electrical-related</option>
+                        <option>Work-related accident</option><option>Accidental Injury</option><option>Suicide attempt</option>
+                        <option>Self-inflicted injury</option><option>Cutting</option><option>Hanging/strangulation</option>
+                        <option>Overdose</option><option>Self-poisoning</option><option>Jumping from height</option>
+                    </datalist>
+                </div>
+                <div class="row">
                     <span class="label">Assigned Team:</span>
                     <select id="assignedTeam" name="assignedTeam" class="full required" required>
                         <option value="">-- Select --</option>
@@ -135,7 +166,60 @@
         <div class="place-row">
             <span class="label">Place of Incident:</span>
             <div class="place-group">
-                <input type="text" name="barangay" class="required" required>
+                <select name="barangay" class="required" required>
+                    <option value="">-- Select Barangay --</option>
+                    <option>Agnas</option>
+                    <option>Bacolod</option>
+                    <option>Bangkilingan</option>
+                    <option>Bantayan</option>
+                    <option>Baranghawon</option>
+                    <option>Basagan</option>
+                    <option>Basud</option>
+                    <option>Bognabong</option>
+                    <option>Bombon</option>
+                    <option>Bonot</option>
+                    <option>Buang</option>
+                    <option>Buhian</option>
+                    <option>Cabagnan</option>
+                    <option>Cobo</option>
+                    <option>Comon</option>
+                    <option>Cormidal</option>
+                    <option>Divino Rostro</option>
+                    <option>Fatima</option>
+                    <option>Guinobat</option>
+                    <option>Hacienda</option>
+                    <option>Magapo</option>
+                    <option>Mariroc</option>
+                    <option>Matagbac</option>
+                    <option>Oras</option>
+                    <option>Oson</option>
+                    <option>Panal</option>
+                    <option>Pawa</option>
+                    <option>Pinagbobong</option>
+                    <option>Quinale Cabasan</option>
+                    <option>Quinastillojan</option>
+                    <option>Rawis</option>
+                    <option>Sagurong</option>
+                    <option>Salvacion</option>
+                    <option>San Antonio</option>
+                    <option>San Carlos</option>
+                    <option>San Isidro</option>
+                    <option>San Juan</option>
+                    <option>San Lorenzo</option>
+                    <option>San Ramon</option>
+                    <option>San Roque</option>
+                    <option>San Vicente</option>
+                    <option>Santo Cristo</option>
+                    <option>Sua-Igot</option>
+                    <option>Tabiguian</option>
+                    <option>Tagas</option>
+                    <option>Tayhi</option>
+                    <option>Visita</option>
+                </select>
+                <div>Barangay</div>
+            </div>
+            <div class="place-group">
+                <input type="text" name="placeLandmark">
                 <div>Place / Landmark</div>
             </div>
             <div class="place-group">

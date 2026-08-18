@@ -378,6 +378,7 @@ function buildReport() {
         <table class="report-table report-table-main">
             <tr><th>Nature of Incident</th><td>${esc(document.getElementById("nature").value)}</td>
                 <th>Assigned Team</th><td>${esc(document.getElementById("assignedTeam").value)}</td></tr>
+            <tr><th>Cause of Incident</th><td colspan="3">${esc(document.querySelector('[name="cause"]').value)}</td></tr>
             <tr><th>Shift-In-Charge</th><td>${esc(document.querySelector('[name="sic"]').value)}</td>
                 <th>Operator in Charge</th><td>${esc(document.querySelector('[name="operator"]').value)}</td></tr>
             <tr><th>Dispatched Resource(s)</th><td colspan="3">${resources.map(esc).join(", ")}</td></tr>
@@ -389,8 +390,9 @@ function buildReport() {
                 <th>Arrival at Scene</th><td>${esc(document.querySelector('[name="arrivalTime"]').value)}</td></tr>
             <tr><th>Take Off from Scene</th><td>${esc(document.querySelector('[name="takeoffTime"]').value)}</td>
                 <th>Arrival at Hospital</th><td>${esc(document.querySelector('[name="hospitalTime"]').value)}</td></tr>
-            <tr><th>Place / Landmark</th><td>${esc(document.querySelector('[name="barangay"]').value)}</td>
+            <tr><th>Barangay</th><td>${esc(document.querySelector('[name="barangay"]').value)}</td>
                 <th>Municipality</th><td>${esc(document.querySelector('[name="municipality"]').value)}</td></tr>
+            <tr><th>Place / Landmark</th><td colspan="3">${esc(document.querySelector('[name="placeLandmark"]').value)}</td></tr>
             <tr><th colspan="4">Patients / Victims / Involved Details:</th></tr>
             <tr><td colspan="4">
                 <div class="patients-wrap">
@@ -447,6 +449,7 @@ function saveDraft() {
         const draft = {
             fields: {
                 nature: val("nature"),
+                cause: val("cause"),
                 assignedTeam: val("assignedTeam"),
                 sic: val("sic"),
                 operator: val("operator"),
@@ -459,6 +462,7 @@ function saveDraft() {
                 takeoffTime: val("takeoffTime"),
                 hospitalTime: val("hospitalTime"),
                 barangay: val("barangay"),
+                placeLandmark: val("placeLandmark"),
                 municipality: val("municipality"),
                 firstAid: val("firstAid"),
                 remarks: val("remarks")
@@ -498,9 +502,9 @@ function restoreDraft() {
         const el = document.querySelector(`[name="${n}"]`);
         if (el) el.value = v ?? "";
     };
-    ["nature", "assignedTeam", "caller", "contact", "callDate", "callTime",
+    ["nature", "cause", "assignedTeam", "caller", "contact", "callDate", "callTime",
         "dispatchedTime", "arrivalTime", "takeoffTime", "hospitalTime",
-        "barangay", "municipality", "firstAid", "remarks"].forEach(n => set(n, f[n]));
+        "barangay", "placeLandmark", "municipality", "firstAid", "remarks"].forEach(n => set(n, f[n]));
 
     const resEl = document.getElementById("resources");
     resEl.innerHTML = "";
@@ -720,6 +724,7 @@ function buildReportData() {
 
     return {
         nature: val("nature"),
+        cause: val("cause"),
         assignedTeam: val("assignedTeam"),
         sic: val("sic"),
         operator: val("operator"),
@@ -733,6 +738,7 @@ function buildReportData() {
         takeoffTime: val("takeoffTime"),
         hospitalTime: val("hospitalTime"),
         barangay: val("barangay"),
+        placeLandmark: val("placeLandmark"),
         municipality: val("municipality"),
         patients: patients.map((p, i) => ({
             patient: p,
