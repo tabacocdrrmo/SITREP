@@ -364,7 +364,7 @@ function doGet(e) {
     const rows = values.map(r => ({
       sitrepNo: r[0],
       recordedAt: formatCell("Recorded At", r[1]),
-      callDate: r[2],
+      callDate: formatCell("Call Date", r[2]),
       nature: r[3],
       name: r[4],
       role: r[5]
