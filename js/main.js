@@ -148,8 +148,8 @@ function victimItemHTML(letter, addRemoveBtn) {
             <input type="text" name="patient[]" class="required" required>
             <span class="sex-label">Sex:</span>
             <span class="checks sex-checks">
-                <label><input type="checkbox" name="sex[]" class="required" value="M"> M</label>
-                <label><input type="checkbox" name="sex[]" class="required" value="F"> F</label>
+                <label><input type="checkbox" name="sex[]" value="M"> M</label>
+                <label><input type="checkbox" name="sex[]" value="F"> F</label>
             </span>
             <span style="text-align:right;">Age:</span>
             <input type="number" name="age[]" class="age" min="0">
