@@ -367,7 +367,7 @@ function renderReportFromSheet(row) {
                 <th>Assigned Team</th><td>${esc(row["Assigned Team"])}</td></tr>
             <tr><th>Cause of Incident</th><td colspan="3">${esc(row["Cause of Incident"] || "")}</td></tr>
             <tr><th>Shift-In-Charge</th><td>${esc(row["Shift-In-Charge (SIC)"])}</td>
-                <th>Operator in Charge</th><td>${esc(row["Operator in Charge"])}</td></tr>
+                <th>Dispatch Operator</th><td>${esc(row["Operator in Charge"])}</td></tr>
             <tr><th>Dispatched Resource(s)</th><td colspan="3">${splitJoined(row["Dispatched Resources"]).map(esc).join(", ")}</td></tr>
             <tr><th>Incident Caller / Informant</th><td>${esc(row["Incident Caller / Informant"])}</td>
                 <th>Contact No.</th><td>${esc(row["Contact No."])}</td></tr>

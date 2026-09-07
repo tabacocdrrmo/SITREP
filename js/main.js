@@ -228,7 +228,7 @@ function refreshSelects(kind) {
         kind === "operator" ? "#operator" :
         kind === "drivers" ? '#drivers select[name="driver[]"]' :
         '#responders select[name="responder[]"]';
-    const placeholder = { sic: "-- Select SIC --", operator: "-- Select Operator --", drivers: "-- Select Driver --", responders: "-- Select Responder --" }[kind];
+    const placeholder = { sic: "-- Select SIC --", operator: "-- Select Dispatch Operator --", drivers: "-- Select Driver --", responders: "-- Select Responder --" }[kind];
     document.querySelectorAll(selector).forEach(sel => {
         sel.innerHTML = `<option value="">${placeholder}</option>` + optionTags(names);
         if (currentTeam() && (
@@ -380,7 +380,7 @@ function buildReport() {
                 <th>Assigned Team</th><td>${esc(document.getElementById("assignedTeam").value)}</td></tr>
             <tr><th>Cause of Incident</th><td colspan="3">${esc(document.querySelector('[name="cause"]').value)}</td></tr>
             <tr><th>Shift-In-Charge</th><td>${esc(document.querySelector('[name="sic"]').value)}</td>
-                <th>Operator in Charge</th><td>${esc(document.querySelector('[name="operator"]').value)}</td></tr>
+                <th>Dispatch Operator</th><td>${esc(document.querySelector('[name="operator"]').value)}</td></tr>
             <tr><th>Dispatched Resource(s)</th><td colspan="3">${resources.map(esc).join(", ")}</td></tr>
             <tr><th>Incident Caller / Informant</th><td>${esc(document.querySelector('[name="caller"]').value)}</td>
                 <th>Contact No.</th><td>${esc(document.querySelector('[name="contact"]').value)}</td></tr>
