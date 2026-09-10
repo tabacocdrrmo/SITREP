@@ -199,18 +199,24 @@ function renumberVictims() {
     });
 }
 
-function currentTeam() {
-    const el = document.getElementById("assignedTeam");
-    return (el && TEAMS[el.value]) ? el.value : "";
+function selectedTeams() {
+    return getCheckedValues("assignedTeam[]");
 }
 
 function optionTags(names) {
     return names.map(n => `<option>${n}</option>`).join("");
 }
 
+// Roster names for the current team selection. With no team checked, every
+// name is offered. With one or more teams checked, the union of those teams'
+// rosters is offered (deduped, in roster order) so a multi-team response can
+// list responders from every responding team.
 function optionsFor(kind) {
-    const team = currentTeam();
-    return team ? TEAMS[team][kind] : ALL_ROSTER[kind];
+    const teams = selectedTeams();
+    if (!teams.length) return ALL_ROSTER[kind];
+    const seen = new Set();
+    teams.forEach(t => (TEAMS[t] && TEAMS[t][kind] || []).forEach(n => seen.add(n)));
+    return [...seen];
 }
 
 function driverOptions() {
@@ -231,7 +237,7 @@ function refreshSelects(kind) {
     const placeholder = { sic: "-- Select SIC --", operator: "-- Select Dispatch Operator --", drivers: "-- Select Driver --", responders: "-- Select Responder --" }[kind];
     document.querySelectorAll(selector).forEach(sel => {
         sel.innerHTML = `<option value="">${placeholder}</option>` + optionTags(names);
-        if (currentTeam() && (
+        if (selectedTeams().length > 0 && (
             (kind === "sic" && names.length === 1) ||
             (kind === "operator" && names.length === 1)
         )) sel.selectedIndex = 1;
@@ -377,7 +383,7 @@ function buildReport() {
     return `
         <table class="report-table report-table-main">
             <tr><th>Nature of Incident</th><td>${esc(document.getElementById("nature").value)}</td>
-                <th>Assigned Team</th><td>${esc(document.getElementById("assignedTeam").value)}</td></tr>
+                <th>Assigned Team</th><td>${esc(selectedTeams().join(", "))}</td></tr>
             <tr><th>Cause of Incident</th><td colspan="3">${esc(document.querySelector('[name="cause"]').value)}</td></tr>
             <tr><th>Shift-In-Charge</th><td>${esc(document.querySelector('[name="sic"]').value)}</td>
                 <th>Dispatch Operator</th><td>${esc(document.querySelector('[name="operator"]').value)}</td></tr>
@@ -450,7 +456,7 @@ function saveDraft() {
             fields: {
                 nature: val("nature"),
                 cause: val("cause"),
-                assignedTeam: val("assignedTeam"),
+assignedTeam: getCheckedValues("assignedTeam[]"),
                 sic: val("sic"),
                 operator: val("operator"),
                 caller: val("caller"),
@@ -502,9 +508,16 @@ function restoreDraft() {
         const el = document.querySelector(`[name="${n}"]`);
         if (el) el.value = v ?? "";
     };
-    ["nature", "cause", "assignedTeam", "caller", "contact", "callDate", "callTime",
+    ["nature", "cause", "caller", "contact", "callDate", "callTime",
         "dispatchedTime", "arrivalTime", "takeoffTime", "hospitalTime",
         "barangay", "placeLandmark", "municipality", "firstAid", "remarks"].forEach(n => set(n, f[n]));
+
+    // Restore the Assigned Team checkboxes. Older drafts stored a single
+    // string; current drafts store an array of team keys.
+    const savedTeams = Array.isArray(f.assignedTeam) ? f.assignedTeam : (f.assignedTeam ? [f.assignedTeam] : []);
+    document.querySelectorAll('[name="assignedTeam[]"]').forEach(cb => {
+        cb.checked = savedTeams.includes(cb.value);
+    });
 
     const resEl = document.getElementById("resources");
     resEl.innerHTML = "";
@@ -689,7 +702,7 @@ document.getElementById("incidentForm").addEventListener("submit", function(e) {
     });
 });
 
-document.getElementById("assignedTeam").addEventListener("change", refreshAllSelects);
+document.querySelectorAll('[name="assignedTeam[]"]').forEach(cb => cb.addEventListener("change", refreshAllSelects));
 
 document.getElementById("incidentForm").addEventListener("input", scheduleDraftSave);
 document.getElementById("incidentForm").addEventListener("change", scheduleDraftSave);
@@ -725,7 +738,7 @@ function buildReportData() {
     return {
         nature: val("nature"),
         cause: val("cause"),
-        assignedTeam: val("assignedTeam"),
+        assignedTeam: selectedTeams().join(", "),
         sic: val("sic"),
         operator: val("operator"),
         resources: getValues("resource[]"),

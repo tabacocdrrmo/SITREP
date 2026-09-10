@@ -5,6 +5,16 @@ let currentSitrepNo = "";
 const PAGE_SIZE = 10;
 let sortOrder = "desc";
 
+// "Assigned Team" may hold one team or several (e.g. "Alpha, Charlie") for
+// multi-team responses. These helpers treat the string as a team list.
+function teamNames(v) {
+    return String(v || "").split(/[;,]/).map(s => s.trim()).filter(Boolean);
+}
+
+function teamMatches(v, team) {
+    return teamNames(v).includes(team);
+}
+
 function viewSitreps() {
     const list = document.getElementById("savedList");
     list.innerHTML = "Loading...";
@@ -27,7 +37,7 @@ function renderSavedList(rows) {
         return;
     }
     fillOptions("filterNature", uniqueSorted(savedRows.map(r => r["Nature of Incident"])));
-    fillOptions("filterTeam", uniqueSorted(savedRows.map(r => r["Assigned Team"])));
+    fillOptions("filterTeam", uniqueSorted(savedRows.flatMap(r => teamNames(r["Assigned Team"]))));
     applyFilters();
 }
 
@@ -77,7 +87,7 @@ function applyFilters() {
 
     const rows = savedRows.filter(r => {
         if (nature && r["Nature of Incident"] !== nature) return false;
-        if (team && r["Assigned Team"] !== team) return false;
+        if (team && !teamMatches(r["Assigned Team"], team)) return false;
         const cd = normDate(r["Call Date"]);
         if (from && cd < from) return false;
         if (to && cd > to) return false;

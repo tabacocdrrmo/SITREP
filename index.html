@@ -136,12 +136,11 @@
                 </div>
                 <div class="row">
                     <span class="label">Assigned Team:</span>
-                    <select id="assignedTeam" name="assignedTeam" class="full required" required>
-                        <option value="">-- Select --</option>
-                        <option>Alpha</option>
-                        <option>Bravo</option>
-                        <option>Charlie</option>
-                    </select>
+                    <span class="checks team-checks">
+                        <label><input type="checkbox" name="assignedTeam[]" class="required" value="Alpha"> Alpha</label>
+                        <label><input type="checkbox" name="assignedTeam[]" class="required" value="Bravo"> Bravo</label>
+                        <label><input type="checkbox" name="assignedTeam[]" class="required" value="Charlie"> Charlie</label>
+                    </span>
                 </div>
                 <div class="row">
                     <span class="label">Shift-In-Charge (SIC):</span>
