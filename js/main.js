@@ -16,7 +16,7 @@ const TEAMS = {
         drivers: ["Ariel C. Bolaños", "Ambrocio V. Piolino", "Christopher Jeorge B. Lacerna", "Reynaldo B. Belgica Jr.", "Jaime Benosa Jr. II", "Segundo B. Ballon Jr."],
         responders: [
             "Jonel B. Bocalbos", "Romulo P. Bolilan Jr.", "Adrian C. Callao",
-            "Arnel C. Camata", "Levi Martin B. Madrid", "Joan B. Sayago",
+            "Arnel C. Camata", "Francis R. Tañang", "Levi Martin B. Madrid", "Joan B. Sayago",
             "Maria Carmela B. Bien", "Romyna B. Bongat", "Claire B. Bobier",
             "Estiffunny S. Celestial", "Julius T. Bariso", "Joseph B. Riosa"
         ]
@@ -27,7 +27,7 @@ const TEAMS = {
         drivers: ["Jonel A. Buendia", "Romar B. Bombon", "Angelo B. Baraero", "Jomar B. Belo", "Jophen B. Bragais", "Pablito M. Amortizado Jr."],
         responders: [
             "Herman B. Bonaobra", "Ero B. Obreros", "Noah M. Altavano",
-            "Pedro G. Boringot I", "Francis R. Tañang", "Janine Eve Q. Base",
+            "Pedro G. Boringot I", "Janine Eve Q. Base",
             "Salvacion Amor B. Campit",
             "Maria Carmela B. Bien", "Romyna B. Bongat", "Claire B. Bobier",
             "Estiffunny S. Celestial", "Julius T. Bariso", "Joseph B. Riosa"
