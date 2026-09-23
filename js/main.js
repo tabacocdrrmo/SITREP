@@ -13,7 +13,7 @@ const TEAMS = {
     Bravo: {
         sic: ["Ambrocio V. Piolino"],
         operator: ["Domingo C. Bron Jr."],
-        drivers: ["Ariel C. Bolaños", "Ambrocio V. Piolino", "Christopher Jeorge B. Lacerna", "Reynaldo B. Belgica Jr.", "Jaime Benosa Jr. II", "Segundo B. Ballon Jr."],
+        drivers: ["Ariel C. Bolaños", "Ambrocio V. Piolino", "Christopher Jeorge B. Lacerna", "Reynaldo B. Belgica Jr.", "Jaime B. Benosa II Jr.", "Segundo B. Ballon Jr."],
         responders: [
             "Jonel B. Bocalbos", "Romulo P. Bolilan Jr.", "Adrian C. Callao",
             "Arnel C. Camata", "Francis R. Tañang", "Levi Martin B. Madrid", "Joan B. Sayago",
