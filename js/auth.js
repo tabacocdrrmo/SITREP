@@ -146,6 +146,7 @@ async function logout() {
     await supabaseClient.auth.signOut();
     const b = document.getElementById("sitrepLogout");
     if (b) b.remove();
+    document.dispatchEvent(new CustomEvent("sitrep-logout"));
     showLogin();
 }
 

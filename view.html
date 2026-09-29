@@ -19,7 +19,13 @@
     <h1 class="desktop-title">Tabaco City Disaster Risk Reduction &amp; Management Office</h1>
     <h2 class="desktop-title">Saved Situation Reports</h2>
     <div class="view-saved-bar">
-        <button type="button" class="action action-primary" onclick="location.href='index.html'">Record New Sitrep</button>
+        <div class="bar-group">
+            <button type="button" class="action action-primary" onclick="location.href='index.html'">Record New Sitrep</button>
+        </div>
+        <div class="bar-group bar-group-right">
+            <button type="button" class="action" onclick="generateCombinedReport()">Generate Report</button>
+            <button type="button" class="action" onclick="exportFilteredCsv()">Download CSV</button>
+        </div>
         <button type="button" class="icon-btn" onclick="viewSitreps()" title="Refresh" aria-label="Refresh">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                 <path d="M21 12a9 9 0 1 1-2.64-6.36"/>
@@ -70,7 +76,7 @@
                 <div class="doc-contact">0909 224 5858 | 0999 475 8582 | 0939 782 9833</div>
             </div>
         </div>
-        <h3 class="report-title">Situation Report</h3>
+        <h3 class="report-title" id="reportModalTitle">Situation Report</h3>
         <div id="reportContent"></div>
         <div class="report-actions">
             <button type="button" onclick="downloadReportImage()">Download Image</button>
@@ -82,7 +88,8 @@
 
 <script src="js/html2canvas.min.js"></script>
 <script src="js/shared.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<!-- Supabase JS pinned to 2.117.2 and served from this repo (no third-party CDN script) -->
+<script src="js/vendor/supabase.min.js"></script>
 <script src="js/auth.js"></script>
 <script src="js/view.js"></script>
 </body>

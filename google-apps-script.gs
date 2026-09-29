@@ -68,16 +68,17 @@ function doPost(e) {
     sheet.appendRow([
       sitrepNo,
       new Date(),
-      data.callDate, data.callTime,
-      data.nature, data.cause, data.assignedTeam, data.sic, data.operator,
-      (data.resources || []).join(", "),
-      data.caller, data.contact,
-      data.dispatchedTime, data.arrivalTime, data.takeoffTime, data.hospitalTime,
-      data.barangay, data.placeLandmark, data.municipality, patients, sexes, ages, addresses, injuries, victimStatuses,
-      initialImpressions, dispositions, pcrBy, (data.vehicleType || []).join(", "),
-      data.firstAid, data.remarks,
-      (data.drivers || []).join(", "),
-      (data.responders || []).join(", "),
+      safeCell(data.callDate), safeCell(data.callTime),
+      safeCell(data.nature), safeCell(data.cause), safeCell(data.assignedTeam), safeCell(data.sic), safeCell(data.operator),
+      safeCell((data.resources || []).join(", ")),
+      safeCell(data.caller), safeCell(data.contact),
+      safeCell(data.dispatchedTime), safeCell(data.arrivalTime), safeCell(data.takeoffTime), safeCell(data.hospitalTime),
+      safeCell(data.barangay), safeCell(data.placeLandmark), safeCell(data.municipality),
+      safeCell(patients), safeCell(sexes), safeCell(ages), safeCell(addresses), safeCell(injuries), safeCell(victimStatuses),
+      safeCell(initialImpressions), safeCell(dispositions), safeCell(pcrBy), safeCell((data.vehicleType || []).join(", ")),
+      safeCell(data.firstAid), safeCell(data.remarks),
+      safeCell((data.drivers || []).join(", ")),
+      safeCell((data.responders || []).join(", ")),
       photoLinks.join("\n")
     ]);
 
@@ -314,18 +315,28 @@ function readSubmissionIds(props) {
   }
 }
 
+// Google Sheets treats any cell starting with = + - @ as a formula, so a value
+// typed into the form (e.g. Remarks) could execute when the sheet is opened.
+// Prefixing with an apostrophe forces it to be stored as plain text.
+function safeCell(value) {
+  if (value === null || value === undefined) return "";
+  if (value instanceof Date) return value;
+  const s = String(value);
+  return /^[=+\-@\t\r]/.test(s) ? "'" + s : s;
+}
+
 // Appends one row per driver and per responder to the Responder Log sheet so
 // each person's participation can be counted and filtered later.
 function logPersonnel(sitrepNo, data) {
   const rows = [];
   (data.responders || []).forEach(name => {
     if (name && String(name).trim()) {
-      rows.push([sitrepNo, new Date(), data.callDate, data.nature, String(name).trim(), "Responder"]);
+      rows.push([sitrepNo, new Date(), safeCell(data.callDate), safeCell(data.nature), safeCell(String(name).trim()), "Responder"]);
     }
   });
   (data.drivers || []).forEach(name => {
     if (name && String(name).trim()) {
-      rows.push([sitrepNo, new Date(), data.callDate, data.nature, String(name).trim(), "Driver"]);
+      rows.push([sitrepNo, new Date(), safeCell(data.callDate), safeCell(data.nature), safeCell(String(name).trim()), "Driver"]);
     }
   });
   if (!rows.length) return;

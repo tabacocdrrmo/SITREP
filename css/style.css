@@ -246,6 +246,15 @@
     #savedList {
         overflow-x: auto;
     }
+    .load-warning {
+        margin: 0 0 10px;
+        padding: 8px 12px;
+        font-size: 12px;
+        color: #8a5a00;
+        background: #fff8e1;
+        border: 1px solid #e0c86a;
+        border-radius: 6px;
+    }
     #savedList .report-table {
         width: 100%;
         border-collapse: collapse;
@@ -286,11 +295,20 @@
     }
     .view-saved-bar {
         display: flex;
-        justify-content: flex-end;
+        justify-content: flex-start;
         align-items: center;
-        gap: 0;
+        gap: 8px;
         margin: 10px 0 14px;
-        padding-right: 22px;
+        /* left padding mirrors the space to the right of the refresh icon */
+        padding: 0 22px 0 24px;
+    }
+    .view-saved-bar .bar-group {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+    .view-saved-bar .bar-group-right {
+        margin-left: auto;
     }
     .view-saved-bar button.action {
         flex: none;
@@ -299,8 +317,8 @@
         margin-bottom: 0;
     }
     .view-saved-bar button.icon-btn {
-        margin-left: 16px;
-        margin-right: 42px;
+        margin-left: 8px;
+        margin-right: 0;
     }
     .draft-notice {
         display: flex;
@@ -335,6 +353,7 @@
         font-size: 12px;
         color: #667;
         margin: 0 0 8px;
+        text-align: right;
     }
     .req-star {
         color: #d00000;
@@ -1097,19 +1116,36 @@
             font-weight: 700;
         }
 
-        .view-saved-bar button.action {
-            width: auto;
-            height: 42px;
-            padding: 0 16px;
-        }
-
         .view-saved-bar {
+            flex-wrap: wrap;
             gap: 8px;
             margin: 10px 0 4px;
-            padding-right: 14px;
+            padding: 0 14px;
+        }
+
+        .view-saved-bar .bar-group {
+            flex: 1 1 100%;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+
+        /* report buttons share the line with the refresh icon */
+        .view-saved-bar .bar-group-right {
+            flex: 1 1 auto;
+            margin-left: 0;
+        }
+
+        .view-saved-bar button.action {
+            flex: 1 1 auto;
+            width: auto;
+            min-width: 0;
+            height: 42px;
+            padding: 0 14px;
+            white-space: nowrap;
         }
 
         .view-saved-bar button.icon-btn {
+            flex: 0 0 auto;
             margin-left: 0;
             margin-right: 0;
         }
@@ -1292,6 +1328,11 @@
         border-radius: 14px;
         box-shadow: 0 6px 24px rgba(27, 49, 66, .10);
         overflow: hidden;
+    }
+
+    /* Saved sitreps list: use the full form width instead of the 1050px default */
+    .form-container > .report-box {
+        width: 100%;
     }
 
     /* Professional desktop header */
@@ -1862,6 +1903,67 @@
     background: #fff;
     z-index: -1;
 }
+
+/* Monthly archive report is captured as A4 landscape */
+.dl-capture-wrap.landscape-report {
+    width: 297mm;
+    min-height: 210mm;
+}
+
+/* Monthly report header: logo on the left, report text pinned right */
+.report-header.monthly-report-header,
+.dl-capture-wrap .report-header.monthly-report-header {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+    gap: 18px;
+    text-align: right;
+    border-bottom: 2px solid #1F4E78;
+    padding-bottom: 6px;
+    margin-bottom: 12px;
+}
+.monthly-report-header .doc-logo {
+    width: 72px;
+    height: 72px;
+    flex: 0 0 72px;
+}
+.monthly-header-text {
+    margin-left: auto;
+    text-align: right;
+}
+.monthly-org {
+    font-family: Arial, Helvetica, sans-serif;
+    font-size: 20pt;
+    font-weight: 700;
+    color: #1F4E78;
+    letter-spacing: 0.5px;
+}
+.monthly-heading {
+    font-family: Arial, Helvetica, sans-serif;
+    font-size: 13pt;
+    font-weight: 700;
+    color: #111;
+    margin-top: 2px;
+}
+.monthly-generated {
+    font-family: Arial, Helvetica, sans-serif;
+    font-size: 10pt;
+    color: #444;
+    margin-top: 2px;
+}
+.report-note {
+    text-align: center;
+    font-size: 9pt;
+    color: #333;
+    margin: 6px 0 10px;
+}
+
+/* Monthly report page is landscape on screen as well */
+body.monthly-report .report-box {
+    width: 1400px;
+    max-width: 100%;
+}
 .dl-capture-wrap .report-box {
     width: 100%;
     max-width: 100%;
@@ -1919,6 +2021,35 @@
 }
 .dl-capture-wrap .report-title {
     min-width: 0;
+    font-size: 15px;
+    margin: 6px 0;
+}
+
+.main-incident-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-family: Arial, Helvetica, sans-serif;
+    font-size: 8.5pt;
+    table-layout: fixed;
+}
+
+.main-incident-table th,
+.main-incident-table td {
+    border: 1px solid #ccc;
+    padding: 2px 5px;
+    vertical-align: top;
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+    white-space: normal;
+    background: #fff;
+    font-size: 8.5pt;
+}
+
+.main-incident-table th {
+    background: #1F4E78;
+    color: #fff;
+    font-weight: bold;
+    text-align: center;
 }
 .dl-capture-wrap .patients-wrap {
     overflow: visible;
@@ -1946,6 +2077,19 @@
    ========================================================= */
 @media print {
     @page { margin: 10mm; }
+
+    /* Browsers drop backgrounds when printing unless told to keep them,
+       which left the table header white with white text */
+    html, body, .report-box, #reportModal, #reportContent, .main-incident-table,
+    .main-incident-table th, .monthly-report-header {
+        -webkit-print-color-adjust: exact !important;
+        print-color-adjust: exact !important;
+    }
+
+    .main-incident-table th {
+        background: #1F4E78 !important;
+        color: #fff !important;
+    }
 
     body {
         background: #fff;

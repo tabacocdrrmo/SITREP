@@ -2,6 +2,7 @@ let savedRows = [];
 let filteredRows = [];
 let currentPage = 1;
 let currentSitrepNo = "";
+let currentReportName = "";
 const PAGE_SIZE = 10;
 let sortOrder = "desc";
 
@@ -15,16 +16,60 @@ function teamMatches(v, team) {
     return teamNames(v).includes(team);
 }
 
+// Saved sitreps are cached for the tab session so the list survives a page
+// reload, while fresh data is fetched in the background and replaces the copy.
+// sessionStorage is deliberate: it is dropped when the tab/browser closes, so
+// the records do not linger on a shared machine.
+const CACHE_KEY = "sitrep-view-cache-v1";
+
+function readRowCache() {
+    try {
+        const raw = sessionStorage.getItem(CACHE_KEY);
+        if (!raw) return null;
+        const data = JSON.parse(raw);
+        return data && Array.isArray(data.rows) ? data.rows : null;
+    } catch (err) {
+        return null;
+    }
+}
+
+function writeRowCache(rows) {
+    try {
+        sessionStorage.setItem(CACHE_KEY, JSON.stringify({ at: Date.now(), rows: rows || [] }));
+    } catch (err) {
+        /* storage full or blocked - the cache is only a convenience */
+    }
+}
+
+function clearRowCache() {
+    try { sessionStorage.removeItem(CACHE_KEY); } catch (err) { /* ignore */ }
+}
+
 function viewSitreps() {
     const list = document.getElementById("savedList");
-    list.innerHTML = "Loading...";
+    const cached = readRowCache();
+    if (cached) {
+        renderSavedList(cached);
+    } else {
+        list.innerHTML = "Loading...";
+    }
+
     invokeSitrepData("sitreps")
         .then(res => {
             if (!res || res.ok !== true) throw new Error((res && res.error) || "Failed to load");
+            writeRowCache(res.rows);
             renderSavedList(res.rows);
         })
         .catch(err => {
-            list.innerHTML = "<p>Failed to load saved sitreps: " + esc(err.message || err) + "</p>";
+            const msg = err && err.message ? err.message : String(err);
+            const note = document.createElement("p");
+            note.className = "load-warning";
+            note.textContent = cached
+                ? "Could not refresh (" + msg + ") - showing the last saved copy."
+                : "Failed to load saved sitreps: " + msg;
+            list.innerHTML = "";
+            list.appendChild(note);
+            if (cached) renderSavedList(cached);
         });
 }
 
@@ -167,6 +212,7 @@ function clearFilters() {
 function showSavedReport(i) {
     const row = savedRows[i];
     if (!row) return;
+    useLetterheadHeader();
     currentSitrepNo = row["SITREP #"] || "";
     document.getElementById("reportContent").innerHTML = renderReportFromSheet(row);
     loadSavedPhotos(document.getElementById("reportContent"));
@@ -175,6 +221,7 @@ function showSavedReport(i) {
 
 function closeReport() {
     document.getElementById("reportModal").style.display = "none";
+    useLetterheadHeader();
 }
 
 // Saves the rendered report as an image. On devices that support sharing files
@@ -214,7 +261,7 @@ function downloadReportImage() {
     if (!box) return;
 
     const hidden = document.createElement("div");
-    hidden.className = "dl-capture-wrap";
+    hidden.className = "dl-capture-wrap" + (currentReportName ? " landscape-report" : "");
 
     const clone = box.cloneNode(true);
     const actions = clone.querySelector(".report-actions");
@@ -237,16 +284,19 @@ function downloadReportImage() {
     });
 
     Promise.all(ready).then(() => {
+        // Scale down automatically for very long reports so the canvas never
+        // exceeds the browser's maximum image size.
+        const scale = Math.max(1, Math.min(3, Math.floor(8000 / Math.max(1, hidden.scrollHeight))));
         return html2canvas(hidden, {
             backgroundColor: "#ffffff",
-            scale: 3,
+            scale: scale,
             useCORS: true,
             logging: false,
             windowWidth: hidden.scrollWidth,
             windowHeight: hidden.scrollHeight
         });
     }).then(canvas => {
-        const filename = (currentSitrepNo ? "SITREP " + currentSitrepNo : "sitrep") + ".png";
+        const filename = (currentReportName || (currentSitrepNo ? "SITREP " + currentSitrepNo : "sitrep")) + ".png";
         saveOrShareImage(canvas, filename);
     }).catch(err => {
         alert("Download Image failed: " + err);
@@ -308,6 +358,37 @@ function fmt(v) {
 
 function splitJoined(s) {
     return String(s ?? "").split(/;\s*|,\s*|\n/).map(x => x.trim()).filter(Boolean);
+}
+
+// Normalizes a cell value to clean display text: "undefined"/"null"/missing
+// values become an empty string, and surrounding whitespace is trimmed.
+function safeText(v) {
+    if (v === null || v === undefined) return "";
+    return String(v).trim();
+}
+
+// Parses a sheet date value (Date object or YYYY-MM-DD string) into a Date.
+function parseDay(v) {
+    if (!safeText(v)) return null;
+    const d = v instanceof Date ? v : new Date(String(v).slice(0, 10) + "T00:00:00");
+    return isNaN(d.getTime()) ? null : d;
+}
+
+// Formats a call date as MM/DD/YYYY.
+function toUSDate(v) {
+    const d = parseDay(v);
+    if (!d) return safeText(v);
+    const p = n => String(n).padStart(2, "0");
+    return p(d.getMonth() + 1) + "/" + p(d.getDate()) + "/" + d.getFullYear();
+}
+
+// Formats a call time as 24-hour HH:MMH (e.g. 14:30H).
+function callTimeH(v) {
+    const s = safeText(fmt(v));
+    if (!s) return "";
+    const m = /^(\d{1,2}):(\d{2})$/.exec(s);
+    if (!m) return s + "H";
+    return String(m[1]).padStart(2, "0") + ":" + m[2] + "H";
 }
 
 // Position-preserving split for the per-patient columns. Unlike splitJoined,
@@ -408,10 +489,194 @@ function renderReportFromSheet(row) {
         ${savedPhotosSection(row["Photos"])}`;
 }
 
+// ---------------------------------------------------------------------------
+// Report header modes
+// The single-sitrep report keeps the standard letterhead; the monthly archive
+// report swaps it for a landscape header with the logo on the left and the
+// report text pinned to the right.
+// ---------------------------------------------------------------------------
+const MONTH_NAMES = ["JANUARY", "FEBRUARY", "MARCH", "APRIL", "MAY", "JUNE", "JULY",
+    "AUGUST", "SEPTEMBER", "OCTOBER", "NOVEMBER", "DECEMBER"];
+let letterheadSnapshot = null;
+let monthlyPageStyle = null;
+
+// Page orientation is a document-level CSS setting, so the landscape @page
+// rule is injected only while the monthly report is open and removed after.
+function enableLandscapePrint(on) {
+    if (on) {
+        if (monthlyPageStyle) return;
+        monthlyPageStyle = document.createElement("style");
+        monthlyPageStyle.textContent = "@media print { @page { size: A4 landscape; margin: 10mm; } }";
+        document.head.appendChild(monthlyPageStyle);
+    } else if (monthlyPageStyle) {
+        monthlyPageStyle.remove();
+        monthlyPageStyle = null;
+    }
+}
+
+function reportHeaderEl() {
+    return document.querySelector("#reportModal .report-header");
+}
+
+// Reporting period for the header: "MAY 2026" for a single month, or a range
+// like "JANUARY - SEPTEMBER 2026" ("NOVEMBER 2025 - FEBRUARY 2026" across
+// years). Uses the filter dates, falling back to the earliest/latest call date
+// in the result set.
+function reportPeriodLabel(rows) {
+    const callDates = (rows || []).map(r => parseDay(r["Call Date"])).filter(Boolean);
+    const fromInput = parseDay(document.getElementById("filterDateFrom").value);
+    const toInput = parseDay(document.getElementById("filterDateTo").value);
+    const start = fromInput || (callDates.length ? new Date(Math.min.apply(null, callDates.map(d => d.getTime()))) : null);
+    const end = toInput || (callDates.length ? new Date(Math.max.apply(null, callDates.map(d => d.getTime()))) : null);
+    if (!start && !end) return "";
+    const first = start || end;
+    const last = end || start;
+    if (first.getFullYear() === last.getFullYear() && first.getMonth() === last.getMonth()) {
+        return MONTH_NAMES[first.getMonth()] + " " + first.getFullYear();
+    }
+    if (first.getFullYear() === last.getFullYear()) {
+        return MONTH_NAMES[first.getMonth()] + " - " + MONTH_NAMES[last.getMonth()] + " " + last.getFullYear();
+    }
+    return MONTH_NAMES[first.getMonth()] + " " + first.getFullYear() +
+        " - " + MONTH_NAMES[last.getMonth()] + " " + last.getFullYear();
+}
+
+function useMonthlyReportHeader(period) {
+    const head = reportHeaderEl();
+    if (!head) return;
+    if (!letterheadSnapshot) letterheadSnapshot = head.outerHTML;
+    head.className = "report-header doc-header monthly-report-header";
+    head.innerHTML =
+        '<img src="CDRRMO Logo.png" alt="CDRRMO Logo" class="doc-logo" onerror="this.style.display=\'none\'">' +
+        '<div class="monthly-header-text">' +
+        '<div class="monthly-org">TABACO CDRRMO</div>' +
+        '<div class="monthly-heading">MONTHLY INCIDENT REPORT:' +
+        (period ? "&nbsp;&nbsp;" + esc(period) : "") + "</div>" +
+        '<div class="monthly-generated">Generated on: ' +
+        esc(new Date().toISOString().slice(0, 10)) + "</div>" +
+        "</div>";
+    const title = document.getElementById("reportModalTitle");
+    if (title) title.style.display = "none";
+    document.body.classList.add("monthly-report");
+    enableLandscapePrint(true);
+}
+
+function useLetterheadHeader() {
+    const head = reportHeaderEl();
+    if (head && letterheadSnapshot) head.outerHTML = letterheadSnapshot;
+    const title = document.getElementById("reportModalTitle");
+    if (title) title.style.display = "";
+    document.body.classList.remove("monthly-report");
+    enableLandscapePrint(false);
+    currentReportName = "";
+}
+
+// Summary table of every incident in the filtered set. No separate S.N. or
+// Ref. No. columns - the SITREP number is the identifier for each row.
+function renderMainIncidentTable(rows) {
+    const heads = ["SITREP No.", "Nature of Incident", "Place of Incident", "Call Date",
+        "Call Time", "Patient / Victim", "Injuries Description", "Remarks"];
+    const headRow = heads.map(h => "<th>" + esc(h) + "</th>").join("");
+    const bodyRows = rows.map(r => {
+        const patients = splitSlots(r["Patient"]).map(safeText).filter(Boolean).join(", ");
+        const cells = [
+            safeText(r["SITREP #"]),
+            safeText(r["Nature of Incident"]),
+            safeText(r["Place / Landmark"] || r["Barangay"]),
+            toUSDate(r["Call Date"]),
+            callTimeH(r["Call Time"]),
+            patients,
+            safeText(r["Injuries"]),
+            safeText(r["Remarks"])
+        ];
+        return "<tr>" + cells.map(c => "<td>" + esc(c) + "</td>").join("") + "</tr>";
+    }).join("");
+    return `
+        <table class="main-incident-table">
+            <colgroup>
+                <col style="width:8%"><col style="width:13%"><col style="width:15%">
+                <col style="width:9%"><col style="width:8%"><col style="width:14%">
+                <col style="width:17%"><col style="width:16%">
+            </colgroup>
+            <thead><tr>${headRow}</tr></thead>
+            <tbody>${bodyRows}</tbody>
+        </table>`;
+}
+
+// Renders the report body for every sitrep matching the current filters: a
+// summary note plus one MAIN INCIDENT TABLE covering every filtered record
+// (all pages, not just the current page).
+function generateCombinedReport() {
+    if (!filteredRows.length) {
+        alert("No sitreps match the current filters.");
+        return;
+    }
+    const from = document.getElementById("filterDateFrom").value;
+    const to = document.getElementById("filterDateTo").value;
+    const range = [from, to].filter(Boolean).join(" to ");
+    currentReportName = "SITREP Report" + (range ? " " + range : "");
+    currentSitrepNo = "";
+    useMonthlyReportHeader(reportPeriodLabel(filteredRows));
+
+    const note = '<div class="report-note">' +
+        (range ? "Covering: " + esc(range) + " &nbsp;|&nbsp; " : "") +
+        filteredRows.length + " record(s)</div>";
+
+    document.getElementById("reportContent").innerHTML =
+        note + '<div class="report-title" style="text-align:center;">MAIN INCIDENT TABLE</div>' +
+        renderMainIncidentTable(filteredRows);
+
+    document.getElementById("reportModal").style.display = "block";
+}
+
+// Exports the full filtered set (not just the current page) as CSV, readable by
+// spreadsheet apps. Multi-value cells are joined with "; ".
+// Quotes a value for CSV. Values starting with = + - @ are prefixed with an
+// apostrophe so spreadsheet apps treat them as text instead of executing them
+// as formulas (CSV/formula injection).
+function csvCell(v) {
+    let s = String(v === null || v === undefined ? "" : v).replace(/\s+/g, " ").trim();
+    if (/^[=+\-@\t\r]/.test(s)) s = "'" + s;
+    return /[",;\n]/.test(s) ? '"' + s.replace(/"/g, '""') + '"' : s;
+}
+
+function exportFilteredCsv() {
+    if (!filteredRows.length) {
+        alert("No sitreps match the current filters.");
+        return;
+    }
+    const FIELDS = ["SITREP #", "Recorded At", "Call Date", "Nature of Incident", "Cause of Incident",
+        "Assigned Team", "Shift-In-Charge (SIC)", "Operator in Charge", "Dispatched Resources",
+        "Incident Caller / Informant", "Contact No.", "Call Time", "Dispatched Time", "Arrival at Scene",
+        "Take Off from Scene", "Arrival at Hospital", "Barangay", "Place / Landmark", "Municipality",
+        "Patient", "Sex", "Age", "Address", "Injuries", "Victim Status", "Initial Impression",
+        "Disposition", "PCR By", "Involved Vehicle Type", "First Aid Provided", "Remarks",
+        "Drivers", "Responders", "Photos"];
+    const line = row => FIELDS.map(f => {
+        const v = row[f];
+        const s = Array.isArray(v) ? v.map(safeText).filter(Boolean).join("; ") : safeText(v);
+        return csvCell(s);
+    }).join(",");
+    const csv = "\uFEFF" + [FIELDS.map(csvCell).join(",")].concat(filteredRows.map(line)).join("\r\n");
+    const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
+    const url = URL.createObjectURL(blob);
+    const from = document.getElementById("filterDateFrom").value;
+    const to = document.getElementById("filterDateTo").value;
+    const range = [from, to].filter(Boolean).join("_");
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = "SITREP Records" + (range ? " " + range : "") + ".csv";
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    setTimeout(() => URL.revokeObjectURL(url), 10000);
+}
+
 document.addEventListener("DOMContentLoaded", () => {
     ["filterSearch", "filterDateFrom", "filterDateTo"].forEach(id =>
         document.getElementById(id).addEventListener("input", applyFilters));
     ["filterNature", "filterTeam"].forEach(id =>
         document.getElementById(id).addEventListener("change", applyFilters));
+    document.addEventListener("sitrep-logout", clearRowCache);
     window.onLoginReady = viewSitreps;
 });
