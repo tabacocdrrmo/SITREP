@@ -1964,6 +1964,17 @@ body.monthly-report .report-box {
     width: 1400px;
     max-width: 100%;
 }
+/* Inset the incident table from the report edges so it does not run the full
+   width of the page. Change --report-inset to adjust the margin; the overview
+   table below reuses it so both stay flush on the left. */
+body.monthly-report {
+    --report-inset: 60px;
+}
+body.monthly-report .main-incident-table {
+    width: calc(100% - (var(--report-inset) * 2));
+    margin-left: var(--report-inset);
+    margin-right: var(--report-inset);
+}
 .dl-capture-wrap .report-box {
     width: 100%;
     max-width: 100%;
@@ -2051,6 +2062,131 @@ body.monthly-report .report-box {
     font-weight: bold;
     text-align: center;
 }
+
+/* =========================================================
+   MONTHLY INCIDENT OVERVIEW + SIGNATURES
+   Rendered after the final incident row, never inside the
+   main table.
+   ========================================================= */
+.report-footer {
+    margin-top: 14px;
+    font-family: Arial, Helvetica, sans-serif;
+    /* Keep the overview and the signature section together. If the page
+       cannot fit them, the whole block moves to the next page instead of
+       being split. */
+    break-inside: avoid;
+    page-break-inside: avoid;
+    break-after: avoid;
+    page-break-after: avoid;
+}
+
+.overview-block {
+    width: 5.5cm;
+    max-width: 100%;
+    /* Flush with the left edge of the incident table above. */
+    margin-left: var(--report-inset, 0px);
+}
+
+.overview-block .report-title {
+    font-size: 9pt;
+    font-weight: bold;
+    color: #1a1a1a;
+    margin: 0 0 4px;
+    min-width: 0;
+}
+
+.overview-table {
+    width: 100%;
+    border-collapse: collapse;
+    table-layout: fixed;
+    font-size: 8.5pt;
+}
+
+.overview-table th,
+.overview-table td {
+    border: 1px solid #ccc;
+    padding: 2px 5px;
+    vertical-align: middle;
+    white-space: normal;
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+    background: #fff;
+    font-size: 8.5pt;
+}
+
+.overview-table th {
+    background: #4a4a4a;
+    color: #fff;
+    font-weight: bold;
+    text-align: left;
+}
+
+.overview-table th:last-child,
+.overview-table .overview-count {
+    text-align: center;
+}
+
+.overview-table .overview-total td {
+    font-weight: bold;
+    background: #f0f0f0;
+}
+
+/* Two signature blocks on one row, grouped toward the middle of the page.
+   Adjust the gap to move them further apart or closer together. */
+.signature-section {
+    display: flex;
+    justify-content: center;
+    column-gap: 4cm;
+    row-gap: 22px;
+    flex-wrap: wrap;
+    align-items: flex-start;
+    margin-top: 26px;
+    break-inside: avoid;
+    page-break-inside: avoid;
+}
+
+.signature-block {
+    width: 6.5cm;
+    max-width: 48%;
+}
+
+.signature-label {
+    font-size: 9pt;
+    font-style: italic;
+    color: #1a1a1a;
+}
+
+/* Blank vertical room for a wet signature. */
+.signature-space {
+    height: 1.6cm;
+}
+
+.signature-rule {
+    border-bottom: 1px solid #000;
+    height: 0;
+}
+
+.signature-name {
+    font-size: 9pt;
+    font-weight: bold;
+    color: #1a1a1a;
+    margin-top: 3px;
+}
+
+.signature-title {
+    font-size: 8.5pt;
+    color: #1a1a1a;
+}
+
+/* The capture wrapper copies the report into a hidden node; keep the layout
+   identical so the PNG matches what is printed. */
+.dl-capture-wrap .report-footer {
+    margin-top: 14px;
+}
+
+.dl-capture-wrap .signature-space {
+    height: 1.6cm;
+}
 .dl-capture-wrap .patients-wrap {
     overflow: visible;
 }
@@ -2081,7 +2217,8 @@ body.monthly-report .report-box {
     /* Browsers drop backgrounds when printing unless told to keep them,
        which left the table header white with white text */
     html, body, .report-box, #reportModal, #reportContent, .main-incident-table,
-    .main-incident-table th, .monthly-report-header {
+    .main-incident-table th, .monthly-report-header, .overview-table,
+    .overview-table th, .overview-table .overview-total td {
         -webkit-print-color-adjust: exact !important;
         print-color-adjust: exact !important;
     }
@@ -2089,6 +2226,15 @@ body.monthly-report .report-box {
     .main-incident-table th {
         background: #1F4E78 !important;
         color: #fff !important;
+    }
+
+    .overview-table th {
+        background: #4a4a4a !important;
+        color: #fff !important;
+    }
+
+    .overview-table .overview-total td {
+        background: #f0f0f0 !important;
     }
 
     body {

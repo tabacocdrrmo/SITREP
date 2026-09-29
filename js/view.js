@@ -571,6 +571,20 @@ function useLetterheadHeader() {
     currentReportName = "";
 }
 
+// "Place of Incident" for the summary table. Barangay and Place / Landmark are
+// separate sheet columns, so show both when available: "Barangay, Place".
+// Falls back to whichever one is filled in, and never repeats a value.
+function placeOfIncident(r) {
+    const barangay = safeText(r["Barangay"]);
+    const landmark = safeText(r["Place / Landmark"]);
+    if (barangay && landmark) {
+        // Some older rows carried the same text in both columns.
+        if (barangay.toLowerCase() === landmark.toLowerCase()) return barangay;
+        return barangay + ", " + landmark;
+    }
+    return barangay || landmark || "";
+}
+
 // Summary table of every incident in the filtered set. No separate S.N. or
 // Ref. No. columns - the SITREP number is the identifier for each row.
 function renderMainIncidentTable(rows) {
@@ -582,7 +596,7 @@ function renderMainIncidentTable(rows) {
         const cells = [
             safeText(r["SITREP #"]),
             safeText(r["Nature of Incident"]),
-            safeText(r["Place / Landmark"] || r["Barangay"]),
+            safeText(placeOfIncident(r)),
             toUSDate(r["Call Date"]),
             callTimeH(r["Call Time"]),
             patients,
@@ -603,9 +617,71 @@ function renderMainIncidentTable(rows) {
         </table>`;
 }
 
+// MONTHLY INCIDENT OVERVIEW: one row per Nature of Incident, counted from the
+// rows actually in the report. Sorted by count descending then alphabetically so
+// the order is stable between regenerations. GRAND TOTAL is the sum of the
+// buckets, which always equals the number of records in the table above.
+function renderMonthlyOverview(rows) {
+    const counts = new Map();
+    (rows || []).forEach(r => {
+        // Nature of Incident is a required field, so a blank one only shows up on
+        // legacy or malformed rows. Bucket those as "(Unspecified)" rather than
+        // dropping them, which keeps GRAND TOTAL equal to the record count.
+        const nature = safeText(r["Nature of Incident"]) || "(Unspecified)";
+        counts.set(nature, (counts.get(nature) || 0) + 1);
+    });
+
+    const sorted = Array.from(counts.entries()).sort((a, b) =>
+        b[1] - a[1] || a[0].localeCompare(b[0])
+    );
+    const grandTotal = sorted.reduce((sum, e) => sum + e[1], 0);
+
+    const bodyRows = sorted.map(([nature, count]) =>
+        "<tr><td>" + esc(nature) + "</td><td class=\"overview-count\">" + count + "</td></tr>"
+    ).join("");
+
+    return `
+        <section class="report-footer">
+            <div class="overview-block">
+                <div class="report-title">MONTHLY INCIDENT OVERVIEW</div>
+                <table class="overview-table">
+                    <colgroup><col style="width:72%"><col style="width:28%"></colgroup>
+                    <thead><tr><th>Nature of Incident</th><th>Total Count</th></tr></thead>
+                    <tbody>
+                        ${bodyRows}
+                        <tr class="overview-total">
+                            <td>GRAND TOTAL</td><td class="overview-count">${grandTotal}</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            ${renderSignatureSection()}
+        </section>`;
+}
+
+// Two side-by-side signature blocks. The rule is a border-bottom rather than a
+// row of underscores so it cannot wrap or shift when the report scales.
+function renderSignatureSection() {
+    const block = (label, name, title) => `
+        <div class="signature-block">
+            <div class="signature-label">${esc(label)}</div>
+            <div class="signature-space"></div>
+            <div class="signature-rule"></div>
+            <div class="signature-name">${esc(name)}</div>
+            <div class="signature-title">${esc(title)}</div>
+        </div>`;
+
+    return `
+        <div class="signature-section">
+            ${block("Prepared by:", "Prepared By:", "Admin Staff")}
+            ${block("Approved by:", "Gelacio M. Molato Jr.", "LDRRMO IV | Head, CDRRMO")}
+        </div>`;
+}
+
 // Renders the report body for every sitrep matching the current filters: a
 // summary note plus one MAIN INCIDENT TABLE covering every filtered record
-// (all pages, not just the current page).
+// (all pages, not just the current page), followed by the monthly overview and
+// signature section after the final incident row.
 function generateCombinedReport() {
     if (!filteredRows.length) {
         alert("No sitreps match the current filters.");
@@ -624,7 +700,8 @@ function generateCombinedReport() {
 
     document.getElementById("reportContent").innerHTML =
         note + '<div class="report-title" style="text-align:center;">MAIN INCIDENT TABLE</div>' +
-        renderMainIncidentTable(filteredRows);
+        renderMainIncidentTable(filteredRows) +
+        renderMonthlyOverview(filteredRows);
 
     document.getElementById("reportModal").style.display = "block";
 }
