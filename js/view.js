@@ -103,6 +103,23 @@ function sitrepSortValue(r) {
     return m ? Number(m[1]) * 100000 + Number(m[2]) : 0;
 }
 
+// The report always reads oldest-first, regardless of how the archive list is
+// sorted, so S.N. runs 1, 2, 3 in incident order. Returns a copy - the archive
+// list keeps its own order. Rows whose SITREP # is missing or unparseable sort
+// to the end and keep their original relative position, rather than jumping to
+// the top because they compare as 0.
+function reportOrderedRows(rows) {
+    return (rows || []).map((r, i) => ({ r, i })).sort((a, b) => {
+        const av = sitrepSortValue(a.r);
+        const bv = sitrepSortValue(b.r);
+        if (!av && !bv) return a.i - b.i;
+        if (!av) return 1;
+        if (!bv) return -1;
+        if (av !== bv) return av - bv;
+        return a.i - b.i;
+    }).map(x => x.r);
+}
+
 function sortSitreps() {
     savedRows.sort((a, b) => {
         const av = sitrepSortValue(a);
@@ -585,15 +602,16 @@ function placeOfIncident(r) {
     return barangay || landmark || "";
 }
 
-// Summary table of every incident in the filtered set. No separate S.N. or
-// Ref. No. columns - the SITREP number is the identifier for each row.
+// Summary table of every incident in the filtered set. S.N. numbers the rows in
+// the order given; the SITREP number stays as the identifier.
 function renderMainIncidentTable(rows) {
-    const heads = ["SITREP No.", "Nature of Incident", "Place of Incident", "Call Date",
+    const heads = ["S.N.", "SITREP No.", "Nature of Incident", "Place of Incident", "Call Date",
         "Call Time", "Patient / Victim", "Injuries Description", "Remarks"];
     const headRow = heads.map(h => "<th>" + esc(h) + "</th>").join("");
-    const bodyRows = rows.map(r => {
+    const bodyRows = rows.map((r, i) => {
         const patients = splitSlots(r["Patient"]).map(safeText).filter(Boolean).join(", ");
         const cells = [
+            String(i + 1),
             safeText(r["SITREP #"]),
             safeText(r["Nature of Incident"]),
             safeText(placeOfIncident(r)),
@@ -608,9 +626,9 @@ function renderMainIncidentTable(rows) {
     return `
         <table class="main-incident-table">
             <colgroup>
-                <col style="width:8%"><col style="width:13%"><col style="width:15%">
-                <col style="width:9%"><col style="width:8%"><col style="width:14%">
-                <col style="width:17%"><col style="width:16%">
+                <col style="width:4%"><col style="width:7%"><col style="width:12%">
+                <col style="width:14%"><col style="width:8%"><col style="width:7%">
+                <col style="width:13%"><col style="width:18%"><col style="width:17%">
             </colgroup>
             <thead><tr>${headRow}</tr></thead>
             <tbody>${bodyRows}</tbody>
@@ -692,16 +710,19 @@ function generateCombinedReport() {
     const range = [from, to].filter(Boolean).join(" to ");
     currentReportName = "SITREP Report" + (range ? " " + range : "");
     currentSitrepNo = "";
-    useMonthlyReportHeader(reportPeriodLabel(filteredRows));
+
+    // Oldest first, independent of how the archive list happens to be sorted.
+    const ordered = reportOrderedRows(filteredRows);
+    useMonthlyReportHeader(reportPeriodLabel(ordered));
 
     const note = '<div class="report-note">' +
         (range ? "Covering: " + esc(range) + " &nbsp;|&nbsp; " : "") +
-        filteredRows.length + " record(s)</div>";
+        ordered.length + " record(s)</div>";
 
     document.getElementById("reportContent").innerHTML =
         note + '<div class="report-title" style="text-align:center;">MAIN INCIDENT TABLE</div>' +
-        renderMainIncidentTable(filteredRows) +
-        renderMonthlyOverview(filteredRows);
+        renderMainIncidentTable(ordered) +
+        renderMonthlyOverview(ordered);
 
     document.getElementById("reportModal").style.display = "block";
 }
