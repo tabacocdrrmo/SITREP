@@ -1898,7 +1898,7 @@
     top: 0;
     width: 210mm;
     min-height: 297mm;
-    padding: 10mm;
+    padding: 5mm;
     box-sizing: border-box;
     background: #fff;
     z-index: -1;
@@ -2212,7 +2212,7 @@ body.monthly-report .main-incident-table {
    PRINT — report only, single page
    ========================================================= */
 @media print {
-    @page { margin: 10mm; }
+    @page { margin: 5mm; }
 
     /* Browsers drop backgrounds when printing unless told to keep them,
        which left the table header white with white text */

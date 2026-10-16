@@ -523,7 +523,7 @@ function enableLandscapePrint(on) {
     if (on) {
         if (monthlyPageStyle) return;
         monthlyPageStyle = document.createElement("style");
-        monthlyPageStyle.textContent = "@media print { @page { size: A4 landscape; margin: 10mm; } }";
+        monthlyPageStyle.textContent = "@media print { @page { size: A4 landscape; margin: 5mm; } }";
         document.head.appendChild(monthlyPageStyle);
     } else if (monthlyPageStyle) {
         monthlyPageStyle.remove();
@@ -605,30 +605,47 @@ function placeOfIncident(r) {
 // Summary table of every incident in the filtered set. S.N. numbers the rows in
 // the order given; the SITREP number stays as the identifier.
 function renderMainIncidentTable(rows) {
-    const heads = ["S.N.", "SITREP No.", "Nature of Incident", "Place of Incident", "Call Date",
-        "Call Time", "Patient / Victim", "Injuries Description", "Remarks"];
+    const heads = ["S.N.", "SITREP No.", "Nature of Incident", "Place of Incident", "Involved Vehicle(s)",
+        "Call Date", "Call Time", "Name of Patient(s) \u2013 Age", "Injuries Description", "Remarks"];
     const headRow = heads.map(h => "<th>" + esc(h) + "</th>").join("");
     const bodyRows = rows.map((r, i) => {
-        const patients = splitSlots(r["Patient"]).map(safeText).filter(Boolean).join(", ");
+        // Pair each patient with the age in the same slot so they read together
+        // ("Carl Rollo \u2013 19"). splitSlots keeps empty slots aligned, so a
+        // missing age does not shift the next patient's age onto this one.
+        // One patient per line: escape each part, then join with <br> so a
+        // multi-patient cell stacks instead of running names and ages together.
+        const names = splitSlots(r["Patient"]);
+        const ages = splitSlots(r["Age"]);
+        const patientsCell = names.map((n, idx) => {
+            const name = safeText(n);
+            const age = safeText(ages[idx]);
+            if (name && age) return name + " \u2013 " + age;
+            return name || age;
+        }).filter(Boolean).map(esc).join("<br>");
+        const vehicles = splitJoined(r["Involved Vehicle Type"]);
+        // The patient cell is pre-escaped (and may hold <br>), so escape every
+        // other cell at construction and insert them as-is.
         const cells = [
-            String(i + 1),
-            safeText(r["SITREP #"]),
-            safeText(r["Nature of Incident"]),
-            safeText(placeOfIncident(r)),
-            toUSDate(r["Call Date"]),
-            callTimeH(r["Call Time"]),
-            patients,
-            safeText(r["Injuries"]),
-            safeText(r["Remarks"])
+            esc(String(i + 1)),
+            esc(safeText(r["SITREP #"])),
+            esc(safeText(r["Nature of Incident"])),
+            esc(safeText(placeOfIncident(r))),
+            esc(vehicles.length ? vehicles.join(", ") : "N/A"),
+            esc(toUSDate(r["Call Date"])),
+            esc(callTimeH(r["Call Time"])),
+            patientsCell,
+            esc(safeText(r["Injuries"])),
+            esc(safeText(r["Remarks"]))
         ];
-        return "<tr>" + cells.map(c => "<td>" + esc(c) + "</td>").join("") + "</tr>";
+        return "<tr>" + cells.map(c => "<td>" + c + "</td>").join("") + "</tr>";
     }).join("");
     return `
         <table class="main-incident-table">
             <colgroup>
-                <col style="width:4%"><col style="width:7%"><col style="width:12%">
-                <col style="width:14%"><col style="width:8%"><col style="width:7%">
-                <col style="width:13%"><col style="width:18%"><col style="width:17%">
+                <col style="width:4%"><col style="width:9%"><col style="width:11%">
+                <col style="width:13%"><col style="width:11%"><col style="width:8%">
+                <col style="width:6%"><col style="width:13%"><col style="width:13%">
+                <col style="width:12%">
             </colgroup>
             <thead><tr>${headRow}</tr></thead>
             <tbody>${bodyRows}</tbody>
