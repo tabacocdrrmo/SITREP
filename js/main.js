@@ -2,10 +2,11 @@ const TEAMS = {
     Alpha: {
         sic: ["Ramon D. Rodriguez"],
         operator: ["Luis C. Borlagdan", "Vicente B. Carale Jr."],
-        drivers: ["Al C. Asis", "Marlon B. Belda", "Ramon D. Rodriguez", "Eugenio S. Cao Jr.", "Warren B. Henson", "Antonio B. Buison Jr."],
+        drivers: ["Al C. Asis", "Marlon B. Belda", "Ramon D. Rodriguez", "Eugenio S. Cao Jr.", "Gelacio M. Molato Jr.", "Warren B. Henson", "Antonio B. Buison Jr."],
         responders: [
             "Wynel B. De Mesa", "Vicente B. Carale Jr.", "Jaime V. Buensoceso",
             "Ferdinand P. San Juan", "Roberto S. Villegas", "Shay Marie Luz R. Benavides",
+            "Rowena B. Buenconsejo",
             "Maria Carmela B. Bien", "Romyna B. Bongat", "Claire B. Bobier",
             "Estiffunny S. Celestial", "Julius T. Bariso", "Joseph B. Riosa"
         ]
@@ -13,10 +14,11 @@ const TEAMS = {
     Bravo: {
         sic: ["Ambrocio V. Piolino"],
         operator: ["Domingo C. Bron Jr."],
-        drivers: ["Ariel C. Bolaños", "Ambrocio V. Piolino", "Christopher Jeorge B. Lacerna", "Reynaldo B. Belgica Jr.", "Jaime B. Benosa II Jr.", "Segundo B. Ballon Jr."],
+        drivers: ["Ariel C. Bolaños", "Ambrocio V. Piolino", "Christopher Jeorge B. Lacerna", "Reynaldo B. Belgica Jr.", "Jaime B. Benosa II Jr.", "Segundo B. Ballon Jr.", "Gelacio M. Molato Jr."],
         responders: [
             "Jonel B. Bocalbos", "Romulo P. Bolilan Jr.", "Adrian C. Callao",
             "Arnel C. Camata", "Francis R. Tañang", "Levi Martin B. Madrid", "Joan B. Sayago",
+            "Rowena B. Buenconsejo",
             "Maria Carmela B. Bien", "Romyna B. Bongat", "Claire B. Bobier",
             "Estiffunny S. Celestial", "Julius T. Bariso", "Joseph B. Riosa"
         ]
@@ -24,11 +26,12 @@ const TEAMS = {
     Charlie: {
         sic: ["Romar B. Bombon"],
         operator: ["Dennis R. Flores", "Imelda B. Castillo"],
-        drivers: ["Jonel A. Buendia", "Romar B. Bombon", "Angelo B. Baraero", "Jomar B. Belo", "Jophen B. Bragais", "Pablito M. Amortizado Jr."],
+        drivers: ["Jonel A. Buendia", "Romar B. Bombon", "Angelo B. Baraero", "Jomar B. Belo", "Jophen B. Bragais", "Pablito M. Amortizado Jr.", "Gelacio M. Molato Jr."],
         responders: [
             "Herman B. Bonaobra", "Ero B. Obreros", "Noah M. Altavano",
             "Pedro G. Boringot I", "Janine Eve Q. Base",
             "Salvacion Amor B. Campit",
+            "Rowena B. Buenconsejo",
             "Maria Carmela B. Bien", "Romyna B. Bongat", "Claire B. Bobier",
             "Estiffunny S. Celestial", "Julius T. Bariso", "Joseph B. Riosa"
         ]
@@ -39,7 +42,7 @@ const ALL_ROSTER = {
     sic: ["Ramon D. Rodriguez", "Ambrocio V. Piolino", "Romar B. Bombon"],
     operator: ["Imelda B. Castillo", "Luis C. Borlagdan", "Domingo C. Bron Jr.", "Dennis R. Flores", "Vicente B. Carale Jr."],
     drivers: [
-        "Al C. Asis", "Jomar B. Belo", "Eugenio S. Cao Jr.", "Warren B. Henson",
+        "Al C. Asis", "Jomar B. Belo", "Eugenio S. Cao Jr.", "Gelacio M. Molato Jr.", "Warren B. Henson",
         "Antonio B. Buison Jr.", "Ariel C. Bolaños", "Christopher Jeorge B. Lacerna",
         "Reynaldo B. Belgica Jr.", "Jaime B. Benosa II Jr.", "Segundo B. Ballon Jr.",
         "Jonel A. Buendia", "Angelo B. Baraero", "Marlon B. Belda", "Jophen B. Bragais",
@@ -52,7 +55,7 @@ const ALL_ROSTER = {
         "Ferdinand P. San Juan", "Arnel C. Camata", "Roberto S. Villegas",
         "Levi Martin B. Madrid", "Francis R. Tañang", "Shay Marie Luz R. Benavides",
         "Joan B. Sayago", "Janine Eve Q. Base", "Salvacion Amor B. Campit",
-        "Pedro G. Boringot I",
+        "Pedro G. Boringot I", "Rowena B. Buenconsejo",
         "Maria Carmela B. Bien", "Romyna B. Bongat", "Claire B. Bobier",
         "Estiffunny S. Celestial", "Julius T. Bariso", "Joseph B. Riosa"
     ]
