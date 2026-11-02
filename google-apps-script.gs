@@ -470,16 +470,19 @@ function servePhoto(id) {
 }
 
 // Saves base64 images into a "SITREP Photos" folder in Drive and returns
-// viewable links. Files are stored under a sub-folder named after the upload
-// date ("MM-DD-YYYY") and named "MM-DD_SITREP#_N.jpg"
-// (e.g. 08-11_2026-001_1.jpg). Files are private; the front-end serves them
-// through the ?action=photo endpoint so they don't need to be publicly shared.
+// viewable links. Both the sub-folder ("MM-DD-YYYY") and the file name
+// ("MM-DD_SITREP#_N.jpg", e.g. 08-11_2026-001_1.jpg) come from the call date,
+// so a report encoded the next morning still files under the day the incident
+// happened. Files are private; the front-end serves them through the
+// ?action=photo endpoint so they don't need to be publicly shared.
 function savePhotos(photos, sitrepNo, callDate) {
   if (!photos || !photos.length) return [];
 
-  const folder = getPhotosFolder();
+  // One key drives both names, so the folder and the file cannot disagree.
+  const dateKey = photoDateKey(callDate);
+  const mmdd = dateKey.slice(0, 5);
 
-  const mmdd = (callDate || "").slice(5) || "";
+  const folder = getPhotosFolder(dateKey);
 
   const links = photos.map(function (p, i) {
     try {
@@ -502,9 +505,9 @@ function savePhotos(photos, sitrepNo, callDate) {
 }
 
 // Resolves the "SITREP Photos" folder plus the "MM-DD-YYYY" sub-folder for the
-// current upload date. Both ids are cached in script properties so the root
-// lookup and each day's sub-folder are only created/found once.
-function getPhotosFolder() {
+// day of the call. Both ids are cached in script properties so the root lookup
+// and each day's sub-folder are only created/found once.
+function getPhotosFolder(dateKey) {
   const props = PropertiesService.getScriptProperties();
 
   let root;
@@ -521,10 +524,6 @@ function getPhotosFolder() {
   // The folder stays private; photos are served only through the
   // ?action=photo endpoint, which runs as the script owner and has Drive access.
 
-  const now = new Date();
-  const pad = n => String(n).padStart(2, "0");
-  const dateKey = pad(now.getMonth() + 1) + "-" + pad(now.getDate()) + "-" + now.getFullYear();
-
   const subKey = "SITREP_PHOTO_SUBFOLDER_" + dateKey;
   const subId = props.getProperty(subKey);
   if (subId) {
@@ -535,6 +534,41 @@ function getPhotosFolder() {
   const sub = subs.hasNext() ? subs.next() : root.createFolder(dateKey);
   props.setProperty(subKey, sub.getId());
   return sub;
+}
+
+// The form sends the call date as "YYYY-MM-DD"; Drive gets "MM-DD-YYYY".
+// A missing or unparseable date falls back to today, so a save never fails
+// over the date alone (the sheet still records the raw value).
+function photoDateKey(callDate) {
+  const pad = n => String(n).padStart(2, "0");
+  let y = 0, m = 0, d = 0;
+
+  if (callDate instanceof Date && !isNaN(callDate.getTime())) {
+    y = callDate.getFullYear();
+    m = callDate.getMonth() + 1;
+    d = callDate.getDate();
+  } else {
+    const match = /^(\d{4})-(\d{1,2})-(\d{1,2})/.exec(String(callDate || "").trim());
+    if (match) {
+      y = Number(match[1]);
+      m = Number(match[2]);
+      d = Number(match[3]);
+    }
+  }
+
+  // Round-trip through Date so impossible days (31 February, month 13) fall
+  // back too, not just empty or malformed input.
+  const probe = new Date(y, m - 1, d);
+  const valid = y > 0 &&
+    probe.getFullYear() === y &&
+    probe.getMonth() === m - 1 &&
+    probe.getDate() === d;
+  if (valid) {
+    return pad(m) + "-" + pad(d) + "-" + y;
+  }
+
+  const now = new Date();
+  return pad(now.getMonth() + 1) + "-" + pad(now.getDate()) + "-" + now.getFullYear();
 }
 
 // One-time helper to revoke the previous "Anyone with the link can view" share
