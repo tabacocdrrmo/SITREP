@@ -708,7 +708,7 @@ function renderSignatureSection() {
 
     return `
         <div class="signature-section">
-            ${block("Prepared by:", "Prepared By:", "Admin Staff")}
+            ${block("Prepared by:", "Imelda B. Castillo", "	Aministrative Aide VI")}
             ${block("Approved by:", "Gelacio M. Molato Jr.", "LDRRMO IV | Head, CDRRMO")}
         </div>`;
 }
