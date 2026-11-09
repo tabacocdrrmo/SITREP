@@ -7,8 +7,7 @@ const TEAMS = {
             "Wynel B. De Mesa", "Vicente B. Carale Jr.", "Jaime V. Buensoceso",
             "Ferdinand P. San Juan", "Roberto S. Villegas", "Shay Marie Luz R. Benavides",
             "Rowena B. Buenconsejo",
-            "Maria Carmela B. Bien", "Romyna B. Bongat", "Claire B. Bobier",
-            "Estiffunny S. Celestial", "Julius T. Bariso", "Joseph B. Riosa"
+            "Maria Carmela B. Bien", "Romyna B. Bongat", "Claire B. Bobier", "Julius T. Bariso", "Joseph B. Riosa"
         ]
     },
     Bravo: {
@@ -19,8 +18,7 @@ const TEAMS = {
             "Jonel B. Bocalbos", "Romulo P. Bolilan Jr.", "Adrian C. Callao",
             "Arnel C. Camata", "Francis R. Tañang", "Levi Martin B. Madrid", "Joan B. Sayago",
             "Rowena B. Buenconsejo",
-            "Maria Carmela B. Bien", "Romyna B. Bongat", "Claire B. Bobier",
-            "Estiffunny S. Celestial", "Julius T. Bariso", "Joseph B. Riosa"
+            "Maria Carmela B. Bien", "Romyna B. Bongat", "Claire B. Bobier", "Julius T. Bariso", "Joseph B. Riosa"
         ]
     },
     Charlie: {
@@ -32,8 +30,7 @@ const TEAMS = {
             "Pedro G. Boringot I", "Janine Eve Q. Base",
             "Salvacion Amor B. Campit",
             "Rowena B. Buenconsejo",
-            "Maria Carmela B. Bien", "Romyna B. Bongat", "Claire B. Bobier",
-            "Estiffunny S. Celestial", "Julius T. Bariso", "Joseph B. Riosa"
+            "Maria Carmela B. Bien", "Romyna B. Bongat", "Claire B. Bobier", "Julius T. Bariso", "Joseph B. Riosa"
         ]
     }
 };
@@ -56,8 +53,7 @@ const ALL_ROSTER = {
         "Levi Martin B. Madrid", "Francis R. Tañang", "Shay Marie Luz R. Benavides",
         "Joan B. Sayago", "Janine Eve Q. Base", "Salvacion Amor B. Campit",
         "Pedro G. Boringot I", "Rowena B. Buenconsejo",
-        "Maria Carmela B. Bien", "Romyna B. Bongat", "Claire B. Bobier",
-        "Estiffunny S. Celestial", "Julius T. Bariso", "Joseph B. Riosa"
+        "Maria Carmela B. Bien", "Romyna B. Bongat", "Claire B. Bobier", "Julius T. Bariso", "Joseph B. Riosa"
     ]
 };
 
